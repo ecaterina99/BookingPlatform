@@ -1,6 +1,8 @@
 package com.server.organization.application;
 
 import com.server.organization.api.OrganizationDTO;
+import com.server.organization.api.OrganizationMemberDTO;
+import com.server.organization.domain.enums.Role;
 import com.server.organization.domain.organizationMembers.OrganizationMember;
 import com.server.organization.domain.organizationMembers.OrganizationMemberRepository;
 import com.server.organization.domain.organizations.Organization;
@@ -38,15 +40,42 @@ public class OrgMembersService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         repository.findByOrganizationIdAndUserId(command.organizationId(), command.userId())
-                .ifPresent(m -> { throw new IllegalArgumentException("This user already is a member of this organization"); });
+                .ifPresent(m -> {
+                    throw new IllegalArgumentException("This user is already a member of this organization");
+                });
 
         OrganizationMember member = new OrganizationMember(
                 command.organizationId(),
                 command.userId(),
                 command.role()
         );
-
         return repository.save(member).getId();
     }
+
+    @Transactional
+    public void deleteMember(int organizationId, int userId) {
+        organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new EntityNotFoundException("Organization not found"));
+
+        userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        OrganizationMember member = repository.findByOrganizationIdAndUserId(organizationId, userId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "This user is NOT a member of this organization"
+                ));
+
+        repository.delete(member);
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrganizationMemberDTO> getMembers(int organizationId) {
+        organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new EntityNotFoundException("Organization not found"));
+
+        List<OrganizationMember> members = repository.findByOrganizationId(organizationId);
+        return members.stream().map(organizationMapper::toDTO).toList();
+    }
+
 }
 

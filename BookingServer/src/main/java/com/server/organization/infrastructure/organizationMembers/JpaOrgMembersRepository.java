@@ -21,23 +21,23 @@ public class JpaOrgMembersRepository implements OrganizationMemberRepository {
 
     @Override
     public Optional<OrganizationMember> findById(int id) {
-        return orgMemberRepositoryJpa.findById(id).map(userMapper::orgMemberToDomain);
+        return orgMemberRepositoryJpa.findById(id).map(userMapper::ToDomain);
     }
 
     @Override
     public List<OrganizationMember> findByOrganizationId(int organizationId) {
-        return orgMemberRepositoryJpa.findByOrganizationId(organizationId).stream().map(userMapper::orgMemberToDomain).toList();
+        return orgMemberRepositoryJpa.findByOrganizationId(organizationId).stream().map(userMapper::ToDomain).toList();
     }
 
     @Override
-    public Optional<OrganizationMember> findByOrganizationIdAndUserId(int organizationId, int userId) {
-        return orgMemberRepositoryJpa.findByOrganizationIdAndUserId(organizationId, userId).map(userMapper::orgMemberToDomain);
+    public Optional<OrganizationMember> findByOrganizationIdAndUserId(int organizationId, int memberId) {
+        return orgMemberRepositoryJpa.findByOrganizationIdAndUserId(organizationId, memberId).map(userMapper::ToDomain);
     }
 
     @Override
     public OrganizationMember save(OrganizationMember member) {
-        OrganizationMembersEntity entity = userMapper.domainToEntity(member);
-        return userMapper.orgMemberToDomain(orgMemberRepositoryJpa.save(entity));
+        OrganizationMembersEntity entity = userMapper.ToEntity(member);
+        return userMapper.ToDomain(orgMemberRepositoryJpa.save(entity));
     }
 
     @Override

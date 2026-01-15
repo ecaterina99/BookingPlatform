@@ -1,6 +1,7 @@
 package com.server.shared.infrastructure;
 
 import com.server.organization.api.OrganizationDTO;
+import com.server.organization.api.OrganizationMemberDTO;
 import com.server.organization.api.UserDTO;
 import com.server.organization.domain.organizationMembers.OrganizationMember;
 import com.server.organization.domain.organizations.Organization;
@@ -83,21 +84,32 @@ public class UserMapper {
         );
     }
 
-    public OrganizationMember orgMemberToDomain(OrganizationMembersEntity e) {
+    public OrganizationMemberDTO toDTO(OrganizationMember organizationMember) {
+        return new OrganizationMemberDTO(
+                organizationMember.getId(),
+                organizationMember.getOrganizationId(),
+                organizationMember.getUserId(),
+                organizationMember.getRole()
+        );
+    }
+
+    public OrganizationMember ToDomain(OrganizationMembersEntity e) {
         return new OrganizationMember(
                 e.getId(),
                 e.getOrganizationId(),
-                e.getMemberId(),
+                e.getUserId(),
                 e.getRole());
     }
 
-    public OrganizationMembersEntity domainToEntity(OrganizationMember m) {
+    public OrganizationMembersEntity ToEntity(OrganizationMember m) {
         OrganizationMembersEntity e = new OrganizationMembersEntity(
-        m.getOrganizationId(),
-        m.getUserId(),
-        m.getRole()
+                m.getOrganizationId(),
+                m.getUserId(),
+                m.getRole()
         );
         e.setId(m.getId());
         return e;
     }
+
+
 }

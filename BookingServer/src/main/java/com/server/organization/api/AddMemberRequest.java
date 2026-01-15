@@ -5,4 +5,5 @@ import com.server.organization.domain.enums.Role;
 public record AddMemberRequest(
         int userId,
         Role role
-) {}
+) {
+}

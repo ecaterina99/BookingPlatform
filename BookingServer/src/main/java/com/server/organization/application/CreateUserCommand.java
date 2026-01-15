@@ -6,4 +6,5 @@ public record CreateUserCommand(
         @NotBlank String email,
         @NotBlank String password,
         @NotBlank String fullName
-) {}
+) {
+}

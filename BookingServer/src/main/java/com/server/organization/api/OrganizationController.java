@@ -70,5 +70,4 @@ public class OrganizationController {
                 new UpdateOrganizationCommand(id, request.name(), request.city(), request.address(), request.phone(), request.email())
         );
     }
-
 }
