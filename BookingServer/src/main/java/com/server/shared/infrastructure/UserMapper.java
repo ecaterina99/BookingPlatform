@@ -1,9 +1,17 @@
 package com.server.shared.infrastructure;
 
+import com.server.organization.api.OrganizationDTO;
 import com.server.organization.api.UserDTO;
+import com.server.organization.domain.organizationMembers.OrganizationMember;
+import com.server.organization.domain.organizations.Organization;
+import com.server.organization.domain.organizations.OrganizationAddress;
+import com.server.organization.domain.organizations.OrganizationEmail;
+import com.server.organization.domain.organizations.OrganizationPhone;
 import com.server.organization.domain.users.User;
 import com.server.organization.domain.users.UserEmail;
 import com.server.organization.domain.users.UserPassword;
+import com.server.organization.infrastructure.organizationMembers.OrganizationMembersEntity;
+import com.server.organization.infrastructure.organizations.OrganizationJpaEntity;
 import com.server.organization.infrastructure.users.UserJpaEntity;
 import org.springframework.stereotype.Component;
 
@@ -38,5 +46,58 @@ public class UserMapper {
                 entity.getFullName(),
                 entity.getGlobalRole()
         );
+    }
+
+    public OrganizationJpaEntity toEntity(Organization organization) {
+        OrganizationJpaEntity entity = new OrganizationJpaEntity(
+                organization.getName(),
+                organization.getEmail().value(),
+                organization.getCity(),
+                organization.getAddress().value(),
+                organization.getPhone().value()
+
+        );
+        entity.setId(organization.getId());
+        return entity;
+    }
+
+    public Organization toDomain(OrganizationJpaEntity entity) {
+        return new Organization(
+                entity.getId(),
+                entity.getName(),
+                new OrganizationAddress(entity.getAddress()),
+                entity.getCity(),
+                new OrganizationEmail(entity.getEmail()),
+                new OrganizationPhone(entity.getPhone())
+        );
+    }
+
+    public OrganizationDTO toDTO(Organization organization) {
+        return new OrganizationDTO(
+                organization.getId(),
+                organization.getName(),
+                organization.getCity(),
+                organization.getAddress().value(),
+                organization.getPhone().value(),
+                organization.getEmail().value()
+        );
+    }
+
+    public OrganizationMember orgMemberToDomain(OrganizationMembersEntity e) {
+        return new OrganizationMember(
+                e.getId(),
+                e.getOrganizationId(),
+                e.getMemberId(),
+                e.getRole());
+    }
+
+    public OrganizationMembersEntity domainToEntity(OrganizationMember m) {
+        OrganizationMembersEntity e = new OrganizationMembersEntity(
+        m.getOrganizationId(),
+        m.getUserId(),
+        m.getRole()
+        );
+        e.setId(m.getId());
+        return e;
     }
 }

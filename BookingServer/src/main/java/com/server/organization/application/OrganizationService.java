@@ -3,7 +3,7 @@ package com.server.organization.application;
 import com.server.organization.api.OrganizationDTO;
 import com.server.organization.domain.organizations.*;
 import com.server.organization.domain.organizations.OrganizationAlreadyExistsException;
-import com.server.shared.infrastructure.OrganizationMapper;
+import com.server.shared.infrastructure.UserMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,10 +14,10 @@ import java.util.List;
 public class OrganizationService {
 
     private final OrganizationRepository organizationRepository;
-    private final OrganizationMapper organizationMapper;
+    private final UserMapper organizationMapper;
 
 
-    public OrganizationService(OrganizationRepository organizationRepository, OrganizationMapper organizationMapper) {
+    public OrganizationService(OrganizationRepository organizationRepository, UserMapper organizationMapper) {
         this.organizationRepository = organizationRepository;
         this.organizationMapper = organizationMapper;
     }

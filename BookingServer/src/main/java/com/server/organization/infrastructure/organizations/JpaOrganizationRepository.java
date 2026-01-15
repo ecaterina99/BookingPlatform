@@ -3,7 +3,7 @@ package com.server.organization.infrastructure.organizations;
 import com.server.organization.domain.organizations.Organization;
 import com.server.organization.domain.organizations.OrganizationEmail;
 import com.server.organization.domain.organizations.OrganizationRepository;
-import com.server.shared.infrastructure.OrganizationMapper;
+import com.server.shared.infrastructure.UserMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,9 +14,9 @@ import java.util.Optional;
 public class JpaOrganizationRepository implements OrganizationRepository {
 
     private final OrganizationJpaRepository organizationJpaRepository;
-    private final OrganizationMapper mapper;
+    private final UserMapper mapper;
 
-    public JpaOrganizationRepository(OrganizationJpaRepository organizationJpaRepository, OrganizationMapper mapper) {
+    public JpaOrganizationRepository(OrganizationJpaRepository organizationJpaRepository, UserMapper mapper) {
         this.organizationJpaRepository = organizationJpaRepository;
         this.mapper = mapper;
     }
