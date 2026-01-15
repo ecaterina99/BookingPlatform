@@ -14,6 +14,11 @@ import com.server.organization.domain.users.UserPassword;
 import com.server.organization.infrastructure.organizationMembers.OrganizationMembersEntity;
 import com.server.organization.infrastructure.organizations.OrganizationJpaEntity;
 import com.server.organization.infrastructure.users.UserJpaEntity;
+import com.server.services.domain.Service;
+import com.server.services.domain.ServiceDuration;
+import com.server.services.domain.ServiceName;
+import com.server.services.domain.ServicePrice;
+import com.server.services.infrastructure.ServiceJpaEntity;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -108,6 +113,30 @@ public class UserMapper {
                 m.getRole()
         );
         e.setId(m.getId());
+        return e;
+    }
+
+
+    public Service toDomain(ServiceJpaEntity e) {
+        return new Service(
+                e.getId(),
+                new ServiceName(e.getName()),
+                e.getOrganizationId(),
+                e.getDescription(),
+                new ServiceDuration(e.getDuration()),
+                new ServicePrice(e.getPrice())
+        );
+    }
+
+    public ServiceJpaEntity toEntity(Service s) {
+        ServiceJpaEntity e = new ServiceJpaEntity(
+                s.getName().value(),
+                s.getOrganizationId(),
+                s.getDescription(),
+                s.getDurationMinutes().minutes(),
+                s.getPrice().price()
+        );
+        e.setId(s.getId());
         return e;
     }
 

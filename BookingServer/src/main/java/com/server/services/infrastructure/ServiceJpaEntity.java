@@ -18,9 +18,20 @@ public class ServiceJpaEntity {
     private String name;
     @Column(nullable = false)
     private String description;
-    @Column(nullable = false)
-    private String duration;
+    @Column(nullable = false, name = "duration_minutes")
+    private int duration;
+    private int price;
+
 
     public ServiceJpaEntity() {
+    }
+
+    public ServiceJpaEntity( String name,int organizationId, String description, int duration, int price) {
+        this.name = name;
+        this.organizationId = organizationId;
+        this.description = description;
+        this.duration = duration;
+        this.price = price;
+
     }
 }
