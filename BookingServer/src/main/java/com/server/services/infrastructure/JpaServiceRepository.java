@@ -33,7 +33,6 @@ public class JpaServiceRepository implements ServiceRepository {
     public Service save(Service service) {
         ServiceJpaEntity entity = mapper.toEntity(service);
         return mapper.toDomain(serviceJpaRepository.save(entity));
-
     }
 
     @Override

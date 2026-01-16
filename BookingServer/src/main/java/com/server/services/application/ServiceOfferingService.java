@@ -14,13 +14,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class ServiceService {
+public class ServiceOfferingService {
 
     private final ServiceRepository serviceRepository;
     private final UserMapper userMapper;
 
 
-    public ServiceService(ServiceRepository serviceRepository, UserMapper userMapper) {
+    public ServiceOfferingService(ServiceRepository serviceRepository, UserMapper userMapper) {
         this.serviceRepository = serviceRepository;
         this.userMapper = userMapper;
     }
@@ -48,6 +48,28 @@ public class ServiceService {
                 new ServicePrice(command.price())
         );
         return serviceRepository.save(service).getId();
+    }
+
+
+    public void updateService(UpdateServiceCommand command) {
+        com.server.services.domain.Service service = findServiceById(command.id());
+
+        if (command.name() != null) {
+            service.changeName(new ServiceName(command.name()));
+        }
+        if (command.description() != null && !command.description().isEmpty()) {
+            service.changeDescription(command.description());
+        }
+        if (command.organizationId() != null) {
+            service.changeOrganizationId(command.organizationId());
+        }
+        if (command.durationMinutes() != null) {
+            service.changeDuration(new ServiceDuration(command.durationMinutes()));
+        }
+        if (command.price() != null) {
+            service.changePrice(new ServicePrice(command.price()));
+        }
+        serviceRepository.save(service);
     }
 
     @Transactional

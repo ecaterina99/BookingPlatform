@@ -26,7 +26,7 @@ public class ServiceJpaEntity {
     public ServiceJpaEntity() {
     }
 
-    public ServiceJpaEntity( String name,int organizationId, String description, int duration, int price) {
+    public ServiceJpaEntity(String name, int organizationId, String description, int duration, int price) {
         this.name = name;
         this.organizationId = organizationId;
         this.description = description;
