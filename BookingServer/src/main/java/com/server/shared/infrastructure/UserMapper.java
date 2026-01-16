@@ -14,6 +14,7 @@ import com.server.organization.domain.users.UserPassword;
 import com.server.organization.infrastructure.organizationMembers.OrganizationMembersEntity;
 import com.server.organization.infrastructure.organizations.OrganizationJpaEntity;
 import com.server.organization.infrastructure.users.UserJpaEntity;
+import com.server.services.api.ServiceDTO;
 import com.server.services.domain.Service;
 import com.server.services.domain.ServiceDuration;
 import com.server.services.domain.ServiceName;
@@ -138,6 +139,17 @@ public class UserMapper {
         );
         e.setId(s.getId());
         return e;
+    }
+
+    public ServiceDTO toDTO(Service service) {
+        return new ServiceDTO(
+                service.getId(),
+                service.getName().value(),
+                service.getOrganizationId(),
+                service.getDescription(),
+                service.getDurationMinutes().minutes(),
+                service.getPrice().price()
+        );
     }
 
 
