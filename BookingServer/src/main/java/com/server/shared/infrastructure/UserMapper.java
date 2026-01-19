@@ -1,5 +1,8 @@
 package com.server.shared.infrastructure;
 
+import com.server.booking.domain.Booking;
+import com.server.booking.domain.TimeSlot;
+import com.server.booking.infrastructure.BookingJpaEntity;
 import com.server.organization.api.OrganizationDTO;
 import com.server.organization.api.OrganizationMemberDTO;
 import com.server.organization.api.UserDTO;
@@ -152,5 +155,31 @@ public class UserMapper {
         );
     }
 
+    public BookingJpaEntity toEntity (Booking booking) {
+
+        BookingJpaEntity b = new BookingJpaEntity(
+                booking.getClientId(),
+                booking.getSpecialistId(),
+                booking.getSpecialistId(),
+                booking.getTimeSlot().start(),
+                booking.getTimeSlot().end(),
+                booking.getStatus(),
+                booking.getCreatedAt()
+        );
+        b.setId(booking.getId());
+        return b;
+    }
+
+    public Booking toDomain (BookingJpaEntity entity){
+        return new Booking(
+                entity.getId(),
+                entity.getClientId(),
+                entity.getServiceId(),
+                entity.getSpecialistId(),
+                new TimeSlot(entity.getStartTime(), entity.getEndTime()),
+                entity.getStatus(),
+                entity.getCreatedAt()
+        );
+    }
 
 }
