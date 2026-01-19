@@ -160,7 +160,7 @@ public class UserMapper {
 
         BookingJpaEntity b = new BookingJpaEntity(
                 booking.getClientId(),
-                booking.getSpecialistId(),
+                booking.getServiceId(),
                 booking.getSpecialistId(),
                 booking.getTimeSlot().start(),
                 booking.getTimeSlot().end(),
@@ -175,8 +175,8 @@ public class UserMapper {
         return new Booking(
                 entity.getId(),
                 entity.getClientId(),
-                entity.getServiceId(),
                 entity.getSpecialistId(),
+                entity.getServiceId(),
                 new TimeSlot(entity.getStartTime(), entity.getEndTime()),
                 entity.getStatus(),
                 entity.getCreatedAt()
