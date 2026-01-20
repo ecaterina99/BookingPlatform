@@ -8,7 +8,6 @@ public record CreateBookingCommand (
         int serviceId,
         LocalDateTime start,
         LocalDateTime end,
-        String status,
         LocalDateTime createdAt
 )
 { }

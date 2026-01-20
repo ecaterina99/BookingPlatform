@@ -1,8 +1,6 @@
 package com.server.booking.api;
 
-import com.server.booking.application.BookingDTO;
-import com.server.booking.application.BookingService;
-import com.server.booking.application.CreateBookingCommand;
+import com.server.booking.application.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -74,10 +72,31 @@ public class BookingController {
         return bookingService.createBooking(command);
     }
 
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Cancel booking")
-    @ApiResponse(responseCode = "204", description = "Booking canceled successfully")
-    public void cancelBooking(@PathVariable int id) {
-        bookingService.deleteBooking(id);
+
+    @PatchMapping("/{id}/confirm")
+    @Operation(summary = "Confirm a booking")
+    @ApiResponse(responseCode = "201", description = "Booking confirmed successfully",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = BookingDTO.class)))
+    public int confirmBooking(@PathVariable int id) {
+        return bookingService.confirmBySpecialist(id,  currentSpecialistId());
     }
+
+    // Client
+    @PatchMapping("/{id}/cancel/client")
+    public void cancelBookingByClient(@PathVariable int id) {
+        bookingService.cancelBookingByClient(id, currentUserId());
+    }
+
+    // Specialist
+    @PatchMapping("/{id}/cancel/specialist")
+    public void cancelBookingBySpecialist(@PathVariable int id) {
+        bookingService.cancelBookingBySpecialist(id, currentSpecialistId());
+    }
+
+    private int currentUserId() {
+        return SecurityUtils.currentUserId();
+    }
+
 }
+

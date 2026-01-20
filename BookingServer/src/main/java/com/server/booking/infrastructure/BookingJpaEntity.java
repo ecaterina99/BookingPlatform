@@ -1,5 +1,6 @@
 package com.server.booking.infrastructure;
 
+import com.server.booking.domain.BookingStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,14 +27,16 @@ public class BookingJpaEntity {
     private LocalDateTime startTime;
     @Column(nullable = false, name = "end_time")
     private LocalDateTime endTime;
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private BookingStatus status;
     @Column(nullable = false, name = "created_at")
     private LocalDateTime createdAt;
 
     public BookingJpaEntity() {
     }
 
-    public BookingJpaEntity(int clientId, int serviceId, int specialistId, LocalDateTime startTime, LocalDateTime endTime, String status, LocalDateTime createdAt) {
+    public BookingJpaEntity(int clientId, int serviceId, int specialistId, LocalDateTime startTime, LocalDateTime endTime, BookingStatus status, LocalDateTime createdAt) {
         this.clientId = clientId;
         this.serviceId = serviceId;
         this.specialistId = specialistId;

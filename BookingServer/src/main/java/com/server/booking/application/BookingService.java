@@ -2,6 +2,7 @@ package com.server.booking.application;
 
 import com.server.booking.domain.Booking;
 import com.server.booking.domain.BookingRepository;
+import com.server.booking.domain.BookingStatus;
 import com.server.booking.domain.TimeSlot;
 import com.server.organization.domain.organizations.Organization;
 import com.server.organization.domain.organizations.OrganizationRepository;
@@ -12,6 +13,8 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.AccessDeniedException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -68,24 +71,60 @@ public class BookingService {
                 command.specialistId(),
                 command.serviceId(),
                 new TimeSlot(command.start(), command.end()),
-                command.status(),
-                command.createdAt()
+                LocalDateTime.now()
         );
         bookingRepository.add(booking);
         return booking.getId();
     }
 
+
     @Transactional
-    public void deleteBooking(int id) {
-        Booking booking = findBookingById(id);
-        bookingRepository.delete(booking.getId());
+    public void cancelBookingByClient(int bookingId, int clientId) throws AccessDeniedException {
+        Booking booking = findBookingById(bookingId);
+
+        if (booking.getClientId() != clientId) {
+            throw new AccessDeniedException("Client does not own this booking");
+        }
+
+        booking.cancelByClient(LocalDateTime.now());
+        bookingRepository.add(booking);
     }
+
+    @Transactional
+    public void cancelBookingBySpecialist(int bookingId, int specialistId) {
+
+        Booking booking = findBookingById(bookingId);
+
+        if (booking.getSpecialistId() != specialistId) {
+            throw new SecurityException("Specialist does not own this booking");
+        }
+
+        booking.cancelBySpecialist();
+        bookingRepository.add(booking);
+    }
+
+
+    @Transactional
+    public int confirmBySpecialist(int bookingId, int specialistId) {
+        Booking booking = findBookingById(bookingId);
+        if (booking.getSpecialistId() != specialistId) {
+            throw new SecurityException("Specialist does not own this booking");
+        }
+        booking.confirmBySpecialist();
+        bookingRepository.add(booking);
+        return booking.getId();
+    }
+
 
     private Booking findBookingById(int id) {
         return bookingRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(
                 "Booking with id: " + id + " is not found"
         ));
     }
+
+
+
+
 
 
 }
