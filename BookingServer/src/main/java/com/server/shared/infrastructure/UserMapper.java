@@ -18,13 +18,18 @@ import com.server.organization.domain.users.UserPassword;
 import com.server.organization.infrastructure.organizationMembers.OrganizationMembersEntity;
 import com.server.organization.infrastructure.organizations.OrganizationJpaEntity;
 import com.server.organization.infrastructure.users.UserJpaEntity;
-import com.server.services.api.ServiceDTO;
-import com.server.services.domain.Service;
-import com.server.services.domain.ServiceDuration;
-import com.server.services.domain.ServiceName;
-import com.server.services.domain.ServicePrice;
-import com.server.services.infrastructure.ServiceJpaEntity;
+import com.server.schedule.domain.Schedule;
+import com.server.schedule.domain.WorkingDay;
+import com.server.schedule.infrastructure.ScheduleJpaEntity;
+import com.server.service.api.ServiceDTO;
+import com.server.service.domain.Service;
+import com.server.service.domain.ServiceDuration;
+import com.server.service.domain.ServiceName;
+import com.server.service.domain.ServicePrice;
+import com.server.service.infrastructure.ServiceJpaEntity;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class UserMapper {
@@ -171,6 +176,7 @@ public class UserMapper {
         return b;
     }
 
+
     public Booking toDomain(BookingJpaEntity entity) {
         return new Booking(
                 entity.getId(),
@@ -178,7 +184,6 @@ public class UserMapper {
                 entity.getSpecialistId(),
                 entity.getServiceId(),
                 new TimeSlot(entity.getStartTime(), entity.getEndTime()),
-                entity.getStatus(),
                 entity.getCreatedAt()
         );
     }
@@ -191,8 +196,44 @@ public class UserMapper {
                 booking.getServiceId(),
                 booking.getTimeSlot().start(),
                 booking.getTimeSlot().end(),
-                booking.getStatus(),
+                booking.getStatus().name(),
                 booking.getCreatedAt()
         );
     }
+
+    public Schedule toDomain (List<ScheduleJpaEntity> entities){
+        if (entities.isEmpty()) {
+            throw new IllegalArgumentException("Schedule rows cannot be empty");
+        }
+        int specialistId = entities.getFirst().getSpecialistId();
+
+        List<WorkingDay> workingDays = entities.stream()
+                .map(e -> new WorkingDay(
+                        e.getDayOfWeek(),
+                        e.getStartTime(),
+                        e.getEndTime()
+                ))
+                .toList();
+
+        return new Schedule(
+                0,
+                specialistId,
+                workingDays
+        );
+    }
+    public List<ScheduleJpaEntity> toScheduleEntities(Schedule schedule) {
+
+        return schedule.getWorkingDays().stream()
+                .map(day -> {
+                    ScheduleJpaEntity e = new ScheduleJpaEntity(
+                            schedule.getSpecialistId(),
+                            day.getDayOfWeek(),
+                            day.getStart(),
+                            day.getEnd()
+                    );
+                    return e;
+                })
+                .toList();
+    }
+
 }

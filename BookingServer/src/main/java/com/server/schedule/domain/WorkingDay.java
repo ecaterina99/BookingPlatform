@@ -1,9 +1,11 @@
 package com.server.schedule.domain;
 
+import lombok.Getter;
+
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 
-
+@Getter
 public class WorkingDay {
 
     private final DayOfWeek dayOfWeek;

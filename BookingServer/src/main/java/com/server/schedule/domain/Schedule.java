@@ -1,7 +1,10 @@
 package com.server.schedule.domain;
 
+import lombok.Getter;
+
 import java.util.List;
 
+@Getter
 public class Schedule {
 
     private final int id;
