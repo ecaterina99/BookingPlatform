@@ -5,7 +5,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface JpaRepository extends org.springframework.data.jpa.repository.JpaRepository<ScheduleJpaEntity, Integer> {
+public interface ScheduleJpaRepository extends org.springframework.data.jpa.repository.JpaRepository<ScheduleJpaEntity, Integer> {
     List<ScheduleJpaEntity> findBySpecialistId(int specialistId);
     void deleteBySpecialistId(int specialistId);
 }

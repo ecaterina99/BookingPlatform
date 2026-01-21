@@ -43,9 +43,13 @@ public class ScheduleService {
     }
 
 
-    private Schedule findScheduleBySpecialistId (int specialistId) {
-        return scheduleRepository.findBySpecialistId(specialistId).orElseThrow(()->
-                new EntityNotFoundException("Schedule for this specialist is not found"));
+    private Schedule findScheduleBySpecialistId(int specialistId) {
+        return scheduleRepository.findBySpecialistId(specialistId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                "Schedule for specialist %d not found".formatted(specialistId)
+                        )
+                );
     }
 
 }

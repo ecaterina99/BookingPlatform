@@ -11,17 +11,17 @@ import java.util.Optional;
 @Repository
 public class JpaScheduleRepository implements ScheduleRepository {
 
-    private final JpaRepository jpaRepository;
+    private final ScheduleJpaRepository scheduleJpaRepository;
     private final UserMapper mapper;
 
-    public JpaScheduleRepository(JpaRepository jpaRepository, UserMapper mapper) {
-        this.jpaRepository = jpaRepository;
+    public JpaScheduleRepository(ScheduleJpaRepository scheduleJpaRepository, UserMapper mapper) {
+        this.scheduleJpaRepository = scheduleJpaRepository;
         this.mapper = mapper;
     }
 
     @Override
     public Optional<Schedule> findBySpecialistId(int specialistId) {
-        List <ScheduleJpaEntity> list = jpaRepository.findBySpecialistId(specialistId);
+        List <ScheduleJpaEntity> list = scheduleJpaRepository.findBySpecialistId(specialistId);
         if (list.isEmpty()) {
             return Optional.empty();
         }
@@ -30,7 +30,7 @@ public class JpaScheduleRepository implements ScheduleRepository {
 
     @Override
     public void save(Schedule schedule) {
-        jpaRepository.deleteBySpecialistId(schedule.getSpecialistId());
-        jpaRepository.saveAll(mapper.toScheduleEntities(schedule));
+        scheduleJpaRepository.deleteBySpecialistId(schedule.getSpecialistId());
+        scheduleJpaRepository.saveAll(mapper.toScheduleEntities(schedule));
     }
 }
