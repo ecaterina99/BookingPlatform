@@ -19,9 +19,7 @@ public record TimeSlot(LocalDateTime start, LocalDateTime end) {
     public boolean overlaps(WorkingHours other) {
         return start.isBefore(other.getEnd()) && end.isAfter(other.getStart());
     }
-
     public Duration toDuration() {
         return Duration.between(start, end);
     }
-
 }

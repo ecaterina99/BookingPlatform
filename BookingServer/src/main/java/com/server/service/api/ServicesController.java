@@ -9,7 +9,10 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,7 +28,7 @@ public class ServicesController {
     }
 
     @GetMapping
-    @Operation(summary = "Retrieve all services")
+    @Operation(summary = "Retrieve all services (public)")
     @ApiResponse(responseCode = "200", description = "Successfully retrieved all services",
             content = @Content(mediaType = "application/json",
                     array = @ArraySchema(schema = @Schema(implementation = ServiceDTO.class))))
@@ -34,7 +37,7 @@ public class ServicesController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Retrieve service by ID")
+    @Operation(summary = "Retrieve service by ID (public)")
     @ApiResponse(responseCode = "200", description = "Service is found",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ServiceDTO.class)))
@@ -45,10 +48,13 @@ public class ServicesController {
     }
 
     @PostMapping
-    @Operation(summary = "Add a new service")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Add a new service (ORG_ADMIN only)",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponse(responseCode = "201", description = "New service added successfully",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ServiceDTO.class)))
+    @PreAuthorize("@orgAccessEvaluator.isOrganizationAdmin(#request.organizationId()) or hasRole('GLOBAL_ADMIN')")
     public int addService(@RequestBody CreateServiceRequest request) {
         return serviceOfferingService.addService(
                 new AddServiceCommand(
@@ -62,17 +68,21 @@ public class ServicesController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Delete service")
+    @Operation(summary = "Delete service (ORG_ADMIN only)",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponse(responseCode = "204", description = "Service deleted successfully")
+    @PreAuthorize("@orgAccessEvaluator.canManageService(#id) or hasRole('GLOBAL_ADMIN')")
     public void deleteService(@PathVariable int id) {
         serviceOfferingService.deleteServiceById(id);
     }
 
     @PatchMapping("/{id}")
-    @Operation(summary = "Partially update service")
+    @Operation(summary = "Partially update service (ORG_ADMIN only)",
+            security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponse(responseCode = "200", description = "Service updated successfully",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ServiceDTO.class)))
+    @PreAuthorize("@orgAccessEvaluator.canManageService(#id) or hasRole('GLOBAL_ADMIN')")
     public void updateService(@PathVariable int id, @Valid @RequestBody UpdateServiceRequest request) {
         serviceOfferingService.updateService(
                 new UpdateServiceCommand(id, request.name(), request.organizationId(), request.description(), request.durationMinutes(), request.price())

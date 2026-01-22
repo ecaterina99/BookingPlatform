@@ -1,29 +1,34 @@
 package com.server.shared.infrastructure.security;
 
+import com.server.organization.domain.enums.GlobalRole;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.List;
 
+@Getter
 public class CustomUserPrincipal implements UserDetails {
 
-    @Getter
     private final int userId;
     private final String email;
     private final String password;
+    private final GlobalRole globalRole;
     private final Collection<? extends GrantedAuthority> authorities;
 
     public CustomUserPrincipal(
             int userId,
             String email,
             String password,
-            Collection<? extends GrantedAuthority> authorities
+            GlobalRole globalRole
     ) {
         this.userId = userId;
         this.email = email;
         this.password = password;
-        this.authorities = authorities;
+        this.globalRole = globalRole;
+        this.authorities = List.of(new SimpleGrantedAuthority("ROLE_" + globalRole.name()));
     }
 
     @Override

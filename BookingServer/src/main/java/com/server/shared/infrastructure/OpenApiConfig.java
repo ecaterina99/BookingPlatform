@@ -8,10 +8,6 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * defines metadata about API (title, version, description).
- */
-
 @Configuration
 public class OpenApiConfig {
 
@@ -19,15 +15,15 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Booking services API")
+                        .title("Booking Services API")
                         .version("1.0")
-                        .description("API for managing bookings"))
+                        .description("API for managing bookings with JWT authentication"))
                 .addSecurityItem(new SecurityRequirement()
-                        .addList("Bearer Authentication"))
+                        .addList("bearerAuth"))
                 .components(new Components()
-                        .addSecuritySchemes("Bearer Authentication",
+                        .addSecuritySchemes("bearerAuth",
                                 new SecurityScheme()
-                                        .name("Bearer Authentication")
+                                        .name("bearerAuth")
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
                                         .bearerFormat("JWT")
