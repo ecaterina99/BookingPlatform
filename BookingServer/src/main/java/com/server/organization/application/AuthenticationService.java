@@ -7,12 +7,13 @@ import com.server.shared.api.AuthRequest;
 import com.server.shared.api.AuthResponse;
 import com.server.shared.api.RegisterRequest;
 import com.server.shared.api.UserInfoResponse;
-import com.server.shared.infrastructure.security.CustomUserPrincipal;
 import com.server.shared.infrastructure.security.JwtService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +60,6 @@ public class AuthenticationService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        // Use existing UserService to create the user
         CreateUserCommand command = new CreateUserCommand(
                 request.email(),
                 request.password(),
@@ -67,7 +67,6 @@ public class AuthenticationService {
         );
         userService.createUser(command);
 
-        // Now authenticate and return token
         User user = userRepository.findByEmail(new UserEmail(request.email()))
                 .orElseThrow(() -> new RuntimeException("User registration failed"));
 
@@ -81,12 +80,13 @@ public class AuthenticationService {
     }
 
     public UserInfoResponse getCurrentUser() {
-        CustomUserPrincipal principal = (CustomUserPrincipal) SecurityContextHolder
+        JwtAuthenticationToken authentication = (JwtAuthenticationToken) SecurityContextHolder
                 .getContext()
-                .getAuthentication()
-                .getPrincipal();
+                .getAuthentication();
+        Jwt jwt = authentication.getToken();
 
-        User user = userRepository.findById(principal.getUserId())
+        Integer userId = jwt.getClaim("userId");
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return new UserInfoResponse(

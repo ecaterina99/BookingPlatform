@@ -1,21 +1,24 @@
 package com.server.shared.infrastructure.security;
 
-import com.nimbusds.jose.*;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.server.organization.domain.enums.GlobalRole;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.text.ParseException;
 import java.util.Date;
 
 @Service
 public class JwtService {
 
     private final byte[] secretKey;
+    @Getter
     private final long expirationMs;
     private final String issuer;
 
@@ -51,63 +54,6 @@ public class JwtService {
             return signedJWT.serialize();
         } catch (JOSEException e) {
             throw new RuntimeException("Error generating JWT token", e);
-        }
-    }
-
-    public boolean validateToken(String token) {
-        try {
-            SignedJWT signedJWT = SignedJWT.parse(token);
-            JWSVerifier verifier = new MACVerifier(secretKey);
-
-            if (!signedJWT.verify(verifier)) {
-                return false;
-            }
-
-            JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
-
-            // Check expiration
-            Date expiration = claims.getExpirationTime();
-            if (expiration == null || expiration.before(new Date())) {
-                return false;
-            }
-
-            // Check issuer
-            String tokenIssuer = claims.getIssuer();
-            if (!issuer.equals(tokenIssuer)) {
-                return false;
-            }
-
-            return true;
-        } catch (ParseException | JOSEException e) {
-            return false;
-        }
-    }
-
-    public String getEmailFromToken(String token) {
-        try {
-            SignedJWT signedJWT = SignedJWT.parse(token);
-            return signedJWT.getJWTClaimsSet().getSubject();
-        } catch (ParseException e) {
-            throw new RuntimeException("Error parsing JWT token", e);
-        }
-    }
-
-    public int getUserIdFromToken(String token) {
-        try {
-            SignedJWT signedJWT = SignedJWT.parse(token);
-            return signedJWT.getJWTClaimsSet().getIntegerClaim("userId");
-        } catch (ParseException e) {
-            throw new RuntimeException("Error parsing JWT token", e);
-        }
-    }
-
-    public GlobalRole getGlobalRoleFromToken(String token) {
-        try {
-            SignedJWT signedJWT = SignedJWT.parse(token);
-            String role = signedJWT.getJWTClaimsSet().getStringClaim("globalRole");
-            return GlobalRole.valueOf(role);
-        } catch (ParseException e) {
-            throw new RuntimeException("Error parsing JWT token", e);
         }
     }
 }

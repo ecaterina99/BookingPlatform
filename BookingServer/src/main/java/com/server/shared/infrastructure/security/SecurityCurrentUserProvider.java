@@ -3,19 +3,20 @@ package com.server.shared.infrastructure.security;
 import com.server.organization.domain.enums.GlobalRole;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 @Component
 public class SecurityCurrentUserProvider implements CurrentUserProvider {
 
     @Override
     public int getUserId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !(auth.getPrincipal() instanceof CustomUserPrincipal)) {
-            throw new IllegalStateException("No authenticated user found");
-        }
-        CustomUserPrincipal principal = (CustomUserPrincipal) auth.getPrincipal();
-        return principal.getUserId();
+        return getJwt()
+                .orElseThrow(() -> new IllegalStateException("No authenticated user found"))
+                .getClaim("userId");
     }
 
     @Override
@@ -30,20 +31,31 @@ public class SecurityCurrentUserProvider implements CurrentUserProvider {
     }
 
     public GlobalRole getGlobalRole() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !(auth.getPrincipal() instanceof CustomUserPrincipal)) {
-            throw new IllegalStateException("No authenticated user found");
-        }
-        CustomUserPrincipal principal = (CustomUserPrincipal) auth.getPrincipal();
-        return principal.getGlobalRole();
+        String role = getJwt()
+                .orElseThrow(() -> new IllegalStateException("No authenticated user found"))
+                .getClaim("globalRole");
+        return GlobalRole.valueOf(role);
+    }
+
+    public String getEmail() {
+        return getJwt()
+                .orElseThrow(() -> new IllegalStateException("No authenticated user found"))
+                .getSubject();
     }
 
     public boolean isAuthenticated() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof CustomUserPrincipal;
+        return getJwt().isPresent();
     }
 
     public boolean isGlobalAdmin() {
         return hasRole("ROLE_GLOBAL_ADMIN");
+    }
+
+    private Optional<Jwt> getJwt() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken jwtAuth) {
+            return Optional.of(jwtAuth.getToken());
+        }
+        return Optional.empty();
     }
 }

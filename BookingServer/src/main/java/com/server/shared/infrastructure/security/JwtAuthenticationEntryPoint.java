@@ -8,18 +8,17 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-/**
- * Controls what happens when an unauthenticated user hits a protected endpoint.
- */
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private final ObjectMapper objectMapper;
+    private final BearerTokenAuthenticationEntryPoint delegate = new BearerTokenAuthenticationEntryPoint();
 
     public JwtAuthenticationEntryPoint() {
         this.objectMapper = new ObjectMapper();
@@ -32,13 +31,20 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             HttpServletResponse response,
             AuthenticationException authException
     ) throws IOException {
+        // Let Spring set WWW-Authenticate header
+        delegate.commence(request, response, authException);
+
+        // Override body with our custom error format
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+        String message = authException.getMessage() != null
+                ? authException.getMessage()
+                : "Authentication required. Please provide a valid Bearer token.";
 
         ApiError apiError = ApiError.of(
                 HttpStatus.UNAUTHORIZED,
                 "UNAUTHORIZED",
-                "Authentication required. Please provide a valid JWT token."
+                message
         );
 
         objectMapper.writeValue(response.getOutputStream(), apiError);
