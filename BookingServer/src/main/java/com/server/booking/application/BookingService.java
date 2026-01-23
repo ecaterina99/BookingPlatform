@@ -1,6 +1,7 @@
 package com.server.booking.application;
 
 import com.server.booking.domain.Booking;
+import com.server.booking.domain.BookingAvailabilityService;
 import com.server.booking.domain.BookingRepository;
 import com.server.booking.domain.TimeSlot;
 import com.server.booking.infrastructure.BookingMapper;
@@ -25,13 +26,21 @@ public class BookingService {
     private final ServiceRepository serviceRepository;
     private final BookingMapper bookingMapper;
     private final ScheduleRepository scheduleRepository;
+    private final BookingAvailabilityService availabilityService;
 
-    public BookingService(BookingRepository bookingRepository, UserRepository userRepository, ServiceRepository serviceRepository, BookingMapper bookingMapper, ScheduleRepository scheduleRepository) {
+    public BookingService(
+            BookingRepository bookingRepository,
+            UserRepository userRepository,
+            ServiceRepository serviceRepository,
+            BookingMapper bookingMapper,
+            ScheduleRepository scheduleRepository
+    ) {
         this.bookingRepository = bookingRepository;
         this.userRepository = userRepository;
         this.serviceRepository = serviceRepository;
         this.bookingMapper = bookingMapper;
         this.scheduleRepository = scheduleRepository;
+        this.availabilityService = new BookingAvailabilityService();
     }
 
     @Transactional(readOnly = true)
@@ -60,24 +69,21 @@ public class BookingService {
 
     @Transactional
     public int createBooking(CreateBookingCommand command) {
+        validateEntitiesExist(command);
 
-        userRepository.findById(command.clientId()).orElseThrow(() -> new EntityNotFoundException("Client not found"));
-        userRepository.findById(command.specialistId()).orElseThrow(() -> new EntityNotFoundException("Specialist not found"));
-        serviceRepository.findById(command.serviceId()).orElseThrow(() -> new EntityNotFoundException("Service not found"));
+        TimeSlot requestedSlot = new TimeSlot(command.start(), command.end());
 
-        WorkingHours requestedSlot =
-                new WorkingHours(command.start(), command.end());
+        Schedule schedule = scheduleRepository.findBySpecialistId(command.specialistId())
+                .orElseThrow(() -> new EntityNotFoundException("Schedule not found"));
 
-        Schedule schedule = scheduleRepository.findBySpecialistId(command.specialistId()).orElseThrow(() -> new EntityNotFoundException("Schedule not found"));
-
-        if (!schedule.isAvailable(requestedSlot)) {
+        WorkingHours requestedHours = new WorkingHours(command.start(), command.end());
+        if (!schedule.isAvailable(requestedHours)) {
             throw new IllegalStateException("Specialist is not available at this time");
         }
 
-        List<Booking> existingBooking = bookingRepository.getBookingsBySpecialistId(command.specialistId());
-        boolean overlaps = existingBooking.stream().anyMatch(b -> b.getTimeSlot().overlaps(requestedSlot));
-
-        if (overlaps) {
+        // Domain check: no conflicting bookings (delegated to domain service)
+        List<Booking> existingBookings = bookingRepository.getBookingsBySpecialistId(command.specialistId());
+        if (!availabilityService.hasNoConflicts(requestedSlot, existingBookings)) {
             throw new IllegalStateException("Time slot already booked");
         }
 
@@ -86,7 +92,7 @@ public class BookingService {
                 command.clientId(),
                 command.specialistId(),
                 command.serviceId(),
-                new TimeSlot(command.start(), command.end()),
+                requestedSlot,
                 LocalDateTime.now()
         );
         bookingRepository.add(booking);
@@ -107,7 +113,6 @@ public class BookingService {
 
     @Transactional
     public void cancelBookingBySpecialist(int bookingId, int specialistId) {
-
         Booking booking = findBookingById(bookingId);
 
         if (booking.getSpecialistId() != specialistId) {
@@ -129,9 +134,17 @@ public class BookingService {
         return booking.getId();
     }
 
+    private void validateEntitiesExist(CreateBookingCommand command) {
+        userRepository.findById(command.clientId())
+                .orElseThrow(() -> new EntityNotFoundException("Client not found"));
+        userRepository.findById(command.specialistId())
+                .orElseThrow(() -> new EntityNotFoundException("Specialist not found"));
+        serviceRepository.findById(command.serviceId())
+                .orElseThrow(() -> new EntityNotFoundException("Service not found"));
+    }
+
     private Booking findBookingById(int id) {
-        return bookingRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(
-                "Booking with id: " + id + " is not found"
-        ));
+        return bookingRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Booking with id: " + id + " is not found"));
     }
 }
