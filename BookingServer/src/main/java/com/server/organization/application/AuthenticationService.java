@@ -85,8 +85,8 @@ public class AuthenticationService {
                 .getAuthentication();
         Jwt jwt = authentication.getToken();
 
-        Integer userId = jwt.getClaim("userId");
-        User user = userRepository.findById(userId)
+        Long userIdLong = jwt.getClaim("userId");
+        User user = userRepository.findById(userIdLong.intValue())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return new UserInfoResponse(

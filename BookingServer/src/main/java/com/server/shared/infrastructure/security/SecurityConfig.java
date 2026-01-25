@@ -17,12 +17,14 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 
@@ -113,8 +115,10 @@ public class SecurityConfig {
 
     @Bean
     public JwtDecoder jwtDecoder() {
-        SecretKeySpec secretKey = new SecretKeySpec(jwtSecret.getBytes(), "HmacSHA256");
-        return NimbusJwtDecoder.withSecretKey(secretKey).build();
+        SecretKeySpec secretKey = new SecretKeySpec(jwtSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+        return NimbusJwtDecoder.withSecretKey(secretKey)
+                .macAlgorithm(MacAlgorithm.HS256)
+                .build();
     }
 
     @Bean
@@ -126,7 +130,10 @@ public class SecurityConfig {
 
     private Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter() {
         return jwt -> {
-            String role = jwt.getClaim("globalRole");
+            String role = jwt.getClaimAsString("globalRole");
+            if (role == null || role.isBlank()) {
+                return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+            }
             return List.of(new SimpleGrantedAuthority("ROLE_" + role));
         };
     }
@@ -140,4 +147,5 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
+
 }

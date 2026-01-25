@@ -14,9 +14,10 @@ public class SecurityCurrentUserProvider implements CurrentUserProvider {
 
     @Override
     public int getUserId() {
-        return getJwt()
+        Long userId = getJwt()
                 .orElseThrow(() -> new IllegalStateException("No authenticated user found"))
                 .getClaim("userId");
+        return userId.intValue();
     }
 
     @Override
@@ -48,6 +49,7 @@ public class SecurityCurrentUserProvider implements CurrentUserProvider {
     }
 
     public boolean isGlobalAdmin() {
+
         return hasRole("ROLE_GLOBAL_ADMIN");
     }
 

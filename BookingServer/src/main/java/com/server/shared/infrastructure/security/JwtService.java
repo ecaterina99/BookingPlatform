@@ -12,6 +12,7 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Service
@@ -27,7 +28,7 @@ public class JwtService {
             @Value("${jwt.expiration-ms}") long expirationMs,
             @Value("${jwt.issuer}") String issuer
     ) {
-        this.secretKey = secret.getBytes();
+        this.secretKey = secret.getBytes(StandardCharsets.UTF_8);
         this.expirationMs = expirationMs;
         this.issuer = issuer;
     }

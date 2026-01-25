@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,7 +19,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/bookings")
-@SecurityRequirement(name = "Bearer Authentication")
+@Tag(name = "Bookings", description = "Operations related to bookings")
+@SecurityRequirement(name = "bearerAuth")
 public class BookingController {
 
     private final BookingService bookingService;

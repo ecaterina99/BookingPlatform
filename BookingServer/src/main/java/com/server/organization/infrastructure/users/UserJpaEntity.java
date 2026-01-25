@@ -29,7 +29,7 @@ public class UserJpaEntity {
     private String fullName;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "global_role")
+    @Column(name = "role")
     private GlobalRole globalRole;
 
     public UserJpaEntity() {
