@@ -29,6 +29,26 @@ public class Booking {
         this.createdAt = createdAt;
     }
 
+    public Booking(
+            int id,
+            int clientId,
+            int specialistId,
+            int serviceId,
+            TimeSlot timeSlot,
+            BookingStatus status,
+            LocalDateTime createdAt
+    ) {
+        this.id = id;
+        this.clientId = clientId;
+        this.specialistId = specialistId;
+        this.serviceId = serviceId;
+        this.timeSlot = timeSlot;
+        this.status = status;
+        this.createdAt = createdAt;
+    }
+
+
+
     public void cancelByClient(LocalDateTime now) {
         if (status == BookingStatus.CANCELLED) {
             throw new IllegalStateException("Booking already cancelled");
