@@ -68,4 +68,37 @@ public class BookingTest {
         );
     }
 
+    @Test
+    void confirmBySpecialist_pendingBooking_confirmsBooking() {
+        TimeSlot timeSlot = new TimeSlot(
+                LocalDateTime.now().plusHours(3),
+                LocalDateTime.now().plusHours(4)
+        );
+        Booking booking = new Booking(
+                1, 2, 3, 1,
+                timeSlot,
+                BookingStatus.CONFIRMED,
+                LocalDateTime.now()
+        );
+        booking.confirmBySpecialist();
+        assertEquals(BookingStatus.CONFIRMED, booking.getStatus());
+    }
+
+    @Test
+    void confirmBySpecialist_notPendingBooking_throwsException() {
+        TimeSlot timeSlot = new TimeSlot(
+                LocalDateTime.now().plusHours(3),
+                LocalDateTime.now().plusHours(4)
+        );
+        Booking booking = new Booking(
+                1, 2, 3, 1,
+                timeSlot,
+                BookingStatus.CANCELLED,
+                LocalDateTime.now()
+        );
+        assertThrows(IllegalStateException.class,
+                booking::confirmBySpecialist
+        );
+    }
+
 }
