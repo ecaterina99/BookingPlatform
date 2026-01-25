@@ -4,7 +4,10 @@ import com.server.booking.domain.Booking;
 import com.server.booking.domain.BookingAvailabilityService;
 import com.server.booking.domain.BookingRepository;
 import com.server.booking.domain.TimeSlot;
+import com.server.booking.events.BookingCreatedEvent;
+import com.server.booking.events.TimeSlotEvent;
 import com.server.booking.infrastructure.BookingMapper;
+import com.server.booking.infrastructure.kafka.BookingEventProducer;
 import com.server.organization.domain.users.UserRepository;
 import com.server.schedule.domain.Schedule;
 import com.server.schedule.domain.ScheduleRepository;
@@ -27,19 +30,22 @@ public class BookingService {
     private final BookingMapper bookingMapper;
     private final ScheduleRepository scheduleRepository;
     private final BookingAvailabilityService availabilityService;
+    private final BookingEventProducer bookingEventProducer;
 
     public BookingService(
             BookingRepository bookingRepository,
             UserRepository userRepository,
             ServiceRepository serviceRepository,
             BookingMapper bookingMapper,
-            ScheduleRepository scheduleRepository
+            ScheduleRepository scheduleRepository,
+            BookingEventProducer bookingEventProducer
     ) {
         this.bookingRepository = bookingRepository;
         this.userRepository = userRepository;
         this.serviceRepository = serviceRepository;
         this.bookingMapper = bookingMapper;
         this.scheduleRepository = scheduleRepository;
+        this.bookingEventProducer = bookingEventProducer;
         this.availabilityService = new BookingAvailabilityService();
     }
 
@@ -80,8 +86,6 @@ public class BookingService {
         if (!schedule.isAvailable(requestedHours)) {
             throw new IllegalStateException("Specialist is not available at this time");
         }
-
-        // Domain check: no conflicting bookings (delegated to domain service)
         List<Booking> existingBookings = bookingRepository.getBookingsBySpecialistId(command.specialistId());
         if (!availabilityService.hasNoConflicts(requestedSlot, existingBookings)) {
             throw new IllegalStateException("Time slot already booked");
@@ -95,7 +99,22 @@ public class BookingService {
                 requestedSlot,
                 LocalDateTime.now()
         );
-        bookingRepository.add(booking);
+        bookingRepository.save(booking);
+
+        bookingEventProducer.sendBookingCreated(
+                new BookingCreatedEvent(
+                        booking.getId(),
+                        booking.getClientId(),
+                        booking.getSpecialistId(),
+                        booking.getServiceId(),
+                        new TimeSlotEvent(
+                                booking.getTimeSlot().start(),
+                                booking.getTimeSlot().end()
+                        ),
+                        booking.getCreatedAt()
+                )
+        );
+
         return booking.getId();
     }
 
@@ -108,7 +127,7 @@ public class BookingService {
         }
 
         booking.cancelByClient(LocalDateTime.now());
-        bookingRepository.add(booking);
+        bookingRepository.save(booking);
     }
 
     @Transactional
@@ -120,7 +139,7 @@ public class BookingService {
         }
 
         booking.cancelBySpecialist();
-        bookingRepository.add(booking);
+        bookingRepository.save(booking);
     }
 
     @Transactional
@@ -130,7 +149,7 @@ public class BookingService {
             throw new SecurityException("Specialist does not own this booking");
         }
         booking.confirmBySpecialist();
-        bookingRepository.add(booking);
+        bookingRepository.save(booking);
         return booking.getId();
     }
 

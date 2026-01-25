@@ -39,7 +39,7 @@ public class BookingJpaRepository implements BookingRepository {
     }
 
     @Override
-    public Booking add(Booking booking) {
+    public Booking save(Booking booking) {
         BookingJpaEntity bookingJpaEntity = mapper.toEntity(booking);
         return mapper.toDomain(jpaBookingRepository.save(bookingJpaEntity));
     }

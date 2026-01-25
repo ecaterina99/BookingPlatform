@@ -41,12 +41,8 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         if (authException.getCause() != null) {
             System.err.println("Cause: " + authException.getCause().getMessage());
         }
-        System.err.println("=================================");
-
-        // Let Spring set WWW-Authenticate header
         delegate.commence(request, response, authException);
 
-        // Override body with our custom error format
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
         String message = authException.getMessage() != null

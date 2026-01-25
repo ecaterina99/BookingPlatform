@@ -1,0 +1,155 @@
+SERVICE BOOKING PLATFORM - PROJECT SETTINGS
+
+PURPOSE: Learning project for DDD, Spring Boot, Spring Security, Kafka patterns.
+STACK: Spring Boot 3.3.4, Java 21, MySQL, Kafka, JWT authentication
+
+---
+
+ARCHITECTURE
+
+Package: com.server | Port: 8085 | DB: mysql://localhost:3306/booking_app
+
+Bounded Contexts (each with domain/application/api/infrastructure layers):
+- organization/ - Users, Organizations, Members
+- booking/      - Bookings and Kafka events
+- schedule/     - Specialist availability
+- service/      - Service offerings
+- shared/       - Security, error handling
+
+---
+
+DOMAIN MODEL
+
+ORGANIZATION CONTEXT (com.server.organization)
+Entities:
+- User: id, email (UserEmail), password (UserPassword), fullName, globalRole
+- Organization: id, name, address, city, email, phone (all with value objects)
+- OrganizationMember: id, organizationId, userId, role
+
+Enums: GlobalRole {USER, GLOBAL_ADMIN}, Role {ADMIN, SPECIALIST}
+
+Services: UserService, OrganizationService, OrgMembersService, AuthenticationService
+
+BOOKING CONTEXT (com.server.booking)
+Entity:
+- Booking: id, clientId, specialistId, serviceId, timeSlot (TimeSlot), status, createdAt
+- Methods: cancelByClient (2h notice), cancelBySpecialist, confirmBySpecialist
+
+Enum: BookingStatus {PENDING, CONFIRMED, CANCELLED}
+Domain Service: BookingAvailabilityService.hasNoConflicts()
+Kafka Events: BookingCreatedEvent, TimeSlotEvent
+
+SCHEDULE CONTEXT (com.server.schedule)
+Entities:
+- Schedule: id, specialistId, workingDays (List<WorkingDay>)
+- WorkingDay: dayOfWeek, start (LocalTime), end (LocalTime)
+
+Value Object: WorkingHours(start, end) - for availability checking
+DB: One row per working day per specialist
+
+SERVICE CONTEXT (com.server.service)
+Entity:
+- Service: id, name (ServiceName), organizationId, description, durationMinutes (ServiceDuration), price (ServicePrice)
+
+Value Objects: ServiceName (max 255), ServicePrice (>0), ServiceDuration (max 480 min)
+
+---
+
+SECURITY
+
+Type: JWT stateless auth via Spring Security OAuth2 Resource Server
+
+Components:
+- JwtService: HMAC-SHA256 tokens, claims: email, userId, globalRole (24h expiry)
+- SecurityCurrentUserProvider: extracts userId, globalRole, email from JWT
+- JwtAuthenticationEntryPoint: JSON 401 responses
+- OrganizationAccessEvaluator (@orgAccessEvaluator): used in @PreAuthorize
+  Methods: isOrganizationAdmin, isOrganizationMember, isSpecialist, canManageBooking, isResourceOwner, isBookingClient, canViewBooking, canManageService
+
+Config: CSRF disabled, stateless sessions, method security enabled
+
+---
+
+REST API
+
+Auth (/api/auth)
+  POST /login, /register - Public
+  GET /get/current - Auth
+
+Users (/api/users)
+  GET / - GLOBAL_ADMIN | GET,PATCH,DELETE /{id} - Owner/Admin | POST / - Public
+
+Organizations (/api/organizations)
+  GET /,/{id} - Public | POST /,DELETE /{id} - GLOBAL_ADMIN | PATCH /{id} - Org Admin
+
+Members (/api/members)
+  POST /add/{orgId}, DELETE /{orgId}/{userId} - Org Admin | GET /{orgId} - Member
+
+Services (/api/services)
+  GET /,/{id} - Public | POST /,PATCH /{id},DELETE /{id} - Org Admin
+
+Schedule (/api/schedule)
+  GET /{specialistId} - Public | POST / - Auth
+
+Bookings (/api/bookings)
+  GET / - GLOBAL_ADMIN | GET /{id} - Client/Specialist | GET /specialist/{id},/client/{id} - Owner
+  POST / - Auth | PATCH /{id}/confirm,/{id}/cancel - Specialist | PATCH /{id}/cancel/client - Client (2h notice)
+
+---
+
+KAFKA
+
+Server: localhost:9092 | Topic: booking.created | Consumer Group: notification-group
+Producer: BookingEventProducer (after booking save)
+Consumer: BookingNotificationListener (logs to console)
+
+---
+
+EXCEPTION HANDLING
+
+GlobalExceptionHandler maps:
+- UserAlreadyExistsException, OrganizationAlreadyExistsException -> 409
+- BadCredentialsException, AuthenticationException -> 401
+- AccessDeniedException, SecurityException -> 403
+- EntityNotFoundException -> 404
+- IllegalStateException, MethodArgumentNotValidException -> 400
+
+Response: ApiError(status, error, message, timestamp, fieldErrors)
+
+---
+
+IMPLEMENTED FEATURES
+
+- JWT auth with registration/login
+- Organizations and members (ADMIN, SPECIALIST roles)
+- Specialist schedules (weekly working days)
+- Services with duration/price
+- Booking with availability validation, overlap prevention
+- Booking confirm/cancel (client 2h notice rule)
+- Role-based + method-level security
+- Kafka booking events
+- Swagger docs
+
+---
+
+LEARNING OPPORTUNITIES
+
+- Push notifications (extend Kafka consumer)
+- Pagination/filtering
+- Tests (MockMvc, domain, repository)
+- Docker Compose deployment
+- Spring Boot Actuator
+
+---
+
+KEY DESIGN DECISIONS
+
+1. Value Objects as Java Records with validation
+2. Repository pattern: domain interfaces, JPA implementations
+3. Command pattern for writes (CreateXCommand, UpdateXCommand)
+4. Separate ModelMapper per context
+5. Schedule as multiple rows (one per day)
+6. JWT claims include userId + globalRole
+7. OrganizationAccessEvaluator centralizes authorization
+8. Kafka events after persistence (eventual consistency)
+9. No MEMBER role - only ADMIN and SPECIALIST

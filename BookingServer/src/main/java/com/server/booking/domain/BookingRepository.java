@@ -16,7 +16,7 @@ public interface BookingRepository {
 
     List<Booking> getBookingsByClientId(int clientId);
 
-    Booking add(Booking booking);
+    Booking save(Booking booking);
 
     void delete(int bookingId);
 }
