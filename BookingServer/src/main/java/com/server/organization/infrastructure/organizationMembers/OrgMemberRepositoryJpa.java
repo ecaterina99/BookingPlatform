@@ -12,4 +12,6 @@ public interface OrgMemberRepositoryJpa extends JpaRepository<OrganizationMember
 
     Optional<OrganizationMembersEntity> findByOrganizationIdAndUserId(int orgId, int userId);
 
+    List<OrganizationMembersEntity> findByUserId(int userId);
+
 }

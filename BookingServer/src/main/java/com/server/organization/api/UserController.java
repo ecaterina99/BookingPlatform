@@ -81,7 +81,16 @@ public class UserController {
     @PreAuthorize("@orgAccessEvaluator.isResourceOwner(#id) or hasRole('GLOBAL_ADMIN')")
     public void updateUser(@PathVariable int id, @Valid @RequestBody UpdateUserRequest request) {
         userService.updateUser(
-                new UpdateUserCommand(request.email(), request.fullName(), request.globalRole(), id)
+                new UpdateUserCommand(request.email(), request.fullName(), id)
         );
+    }
+
+    @PatchMapping("/{id}/role")
+    @Operation(summary = "Change user global role (GLOBAL_ADMIN only)",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "Role updated successfully")
+    @PreAuthorize("hasRole('GLOBAL_ADMIN')")
+    public void changeUserRole(@PathVariable int id, @RequestBody ChangeUserRoleRequest request) {
+        userService.changeUserRole(id, request.globalRole());
     }
 }

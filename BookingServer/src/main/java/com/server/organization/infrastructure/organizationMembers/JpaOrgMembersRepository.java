@@ -34,6 +34,11 @@ public class JpaOrgMembersRepository implements OrganizationMemberRepository {
     }
 
     @Override
+    public List<OrganizationMember> findByUserId(int userId) {
+        return orgMemberRepositoryJpa.findByUserId(userId).stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
     public OrganizationMember save(OrganizationMember member) {
         OrganizationMembersEntity entity = mapper.toEntity(member);
         return mapper.toDomain(orgMemberRepositoryJpa.save(entity));

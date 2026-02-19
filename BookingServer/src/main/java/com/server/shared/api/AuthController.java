@@ -9,11 +9,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -64,12 +60,4 @@ public class AuthController {
         return authenticationService.getCurrentUser();
     }
 
-    @GetMapping("/debug/authorities")
-    @Operation(summary = "Debug endpoint to check current user authorities")
-    public List<String> getAuthorities() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return auth.getAuthorities().stream()
-                .map(Object::toString)
-                .toList();
-    }
 }

@@ -9,6 +9,7 @@ import com.server.service.domain.Service;
 import com.server.service.domain.ServiceRepository;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component("orgAccessEvaluator")
@@ -130,7 +131,12 @@ public class OrganizationAccessEvaluator {
         }
 
         Booking b = booking.get();
-        return b.getClientId() == userId || b.getSpecialistId() == userId;
+        if (b.getClientId() == userId || b.getSpecialistId() == userId) return true;
+
+        // Also allow org admins of the specialist's organization
+        List<OrganizationMember> specialistMemberships = memberRepository.findByUserId(b.getSpecialistId());
+        return specialistMemberships.stream()
+                .anyMatch(m -> isOrganizationAdmin(m.getOrganizationId()));
     }
 
     /**

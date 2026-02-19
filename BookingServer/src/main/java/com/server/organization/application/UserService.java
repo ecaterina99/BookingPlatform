@@ -75,9 +75,13 @@ public class UserService {
         if (command.email() != null && !command.email().isBlank()) {
             user.changeEmail(new UserEmail(command.email()));
         }
-        if (command.globalRole() != null) {
-            user.changeRole(command.globalRole());
-        }
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void changeUserRole(int id, GlobalRole role) {
+        User user = findUserById(id);
+        user.changeRole(role);
         userRepository.save(user);
     }
 

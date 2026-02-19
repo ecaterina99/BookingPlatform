@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -44,6 +45,7 @@ public class ScheduleController {
     @ApiResponse(responseCode = "201", description = "Schedule created successfully",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = ScheduleDTO.class)))
+    @PreAuthorize("@orgAccessEvaluator.isResourceOwner(#command.specialistId()) or hasRole('GLOBAL_ADMIN')")
     public void createSchedule(@Valid @RequestBody CreateScheduleCommand command) {
         scheduleService.createOrUpdateSchedule(command);
     }

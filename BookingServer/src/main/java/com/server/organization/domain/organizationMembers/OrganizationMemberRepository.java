@@ -11,6 +11,8 @@ public interface OrganizationMemberRepository {
 
     Optional<OrganizationMember> findByOrganizationIdAndUserId(int organizationId, int userId);
 
+    List<OrganizationMember> findByUserId(int userId);
+
     OrganizationMember save(OrganizationMember member);
 
     void delete(OrganizationMember member);
