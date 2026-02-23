@@ -53,11 +53,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
         );
     }
 
-    // If no content (204), return undefined
-    if (res.status === 204) return undefined as T;
+    // If no content, return undefined (handles both 204 and 200 with empty body)
+    const text = await res.text();
+    if (!text) return undefined as T;
 
-    // Otherwise return JSON response
-    return res.json();
+    // Otherwise parse and return JSON response
+    return JSON.parse(text);
 }
 
 // Public API helper methods
