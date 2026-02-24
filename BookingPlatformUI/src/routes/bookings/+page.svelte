@@ -10,6 +10,9 @@
 
     let bookings: BookingDTO[] = [];
     let loading = true;
+    let specialistId: number | null = null;
+    let startDateTime: string = '';
+    let endDateTime: string = '';
     let error = '';
 
     onMount(async () => {
@@ -41,6 +44,7 @@
                 <div>
                     <p class="font-medium">Booking id: {booking.id}</p>
                     <p class="text-sm text-gray-500">{booking.start} → {booking.end}</p>
+                    <p class="text-sm text-gray-500">Specialist id: {booking.specialistId}</p>
                     <span class="text-xs font-semibold px-2 py-0.5 rounded"
                           class:bg-yellow-100={booking.status === 'PENDING'}
                           class:bg-green-100={booking.status === 'CONFIRMED'}

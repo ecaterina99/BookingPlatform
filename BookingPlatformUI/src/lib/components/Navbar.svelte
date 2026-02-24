@@ -11,7 +11,7 @@
 <nav class="flex items-center gap-6 px-6 py-3 border-b">
     <a href="/static" class="font-bold">BookingApp</a>
     <a href="/organizations">Organizations</a>
-    <a href="/services">Services</a>
+    <a href="/bookings/new">Book a service</a>
 
     {#if $isLoggedIn}
         <a href="/bookings">My Bookings</a>
