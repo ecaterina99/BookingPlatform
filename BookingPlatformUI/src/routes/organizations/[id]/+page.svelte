@@ -4,7 +4,7 @@
     import { page } from '$app/stores';
     import { organizationsApi } from '$lib/api/organizations';
     import { servicesApi } from '$lib/api/services';
-    import type { OrganizationDTO, ServiceDTO } from '$lib/types';
+    import type { OrganizationDTO, ServiceDTO, SpecialistDTO } from '$lib/types';
     import {get} from "svelte/store";
     import {currentUser} from "$lib/stores/auth";
     import {bookingsApi} from "$lib/api/bookings";
@@ -19,13 +19,13 @@
     let org: OrganizationDTO | null = null;
     let services: ServiceDTO[] = [];
     let loading = true;
-    let error = '';
-
+    let specialists: SpecialistDTO[] = [];
     let selectedService: ServiceDTO | null = null;
     let specialistId: number | null = null;
     let startDateTime: string = '';
     let submitting = false;
     let bookingError = '';
+    let error = '';
 
     // Fetch data when component is mounted.
     onMount(async () => {
@@ -43,9 +43,10 @@
         }
     });
 
-    function selectService(service: ServiceDTO) {
+    async function selectService(service: ServiceDTO) {
         selectedService = service;
-        bookingError = '';
+        specialists = await organizationsApi.getSpecialists(service.organizationId);
+        error = '';
     }
 
     async function create() {
@@ -93,6 +94,12 @@
             <h2 class="text-xl font-semibold mb-4">
                 Booking: {selectedService.name}
             </h2>
+            <select bind:value={specialistId} class="border rounded px-3 py-3">
+                <option value={null} disabled>Select a specialist</option>
+                {#each specialists as s}
+                    <option  value={s.userId}>{s.fullName}</option>
+                {/each}
+            </select>
 
             {#if bookingError}
                 <p class="text-red-600 text-sm mb-4">{bookingError}</p>
@@ -107,7 +114,7 @@
                 </div>
 
                 <div class="flex flex-col gap-1">
-                    <label class="text-sm font-medium">Start Date and time</label>
+                    <label for="id" class="text-sm font-medium">Start Date and time</label>
                     <input bind:value={startDateTime} type="datetime-local"
                            class="border rounded px-3 py-2" required />
                 </div>

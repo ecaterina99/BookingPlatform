@@ -1,6 +1,8 @@
 package com.server.organization.application;
 
 import com.server.organization.api.OrganizationMemberDTO;
+import com.server.organization.api.SpecialistDTO;
+import com.server.organization.domain.enums.Role;
 import com.server.organization.domain.organizationMembers.OrganizationMember;
 import com.server.organization.domain.organizationMembers.OrganizationMemberRepository;
 import com.server.organization.domain.organizations.OrganizationRepository;
@@ -72,4 +74,19 @@ public class OrgMembersService {
         List<OrganizationMember> members = repository.findByOrganizationId(organizationId);
         return members.stream().map(memberMapper::toDTO).toList();
     }
+
+
+    @Transactional(readOnly = true)
+    public List<SpecialistDTO> getSpecialists(int organizationId) {
+        return repository.findByOrganizationId(organizationId).stream()
+                .filter(m -> m.getRole() == Role.SPECIALIST)
+                .map(m -> {
+                    var user = userRepository.findById(m.getUserId())
+                            .orElseThrow(() -> new EntityNotFoundException("User not found"));
+                    return new SpecialistDTO(m.getUserId(), user.getFullName());
+                })
+                .toList();
+    }
+
+
 }

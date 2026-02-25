@@ -68,4 +68,10 @@ public class OrgMembersController {
             @PathVariable int organizationId) {
         return orgMembersService.getMembers(organizationId);
     }
+
+    @GetMapping("/{organizationId}/specialists")
+    @Operation(summary = "Get all specialists of an organization")
+    public List<SpecialistDTO> getSpecialists(@PathVariable int organizationId) {
+        return orgMembersService.getSpecialists(organizationId);
+    }
 }

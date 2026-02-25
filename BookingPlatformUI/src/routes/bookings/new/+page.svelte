@@ -8,7 +8,7 @@
     import { requireAuth } from '$lib/guards';
     import { ApiError } from '$lib/api/client';
     import { get } from 'svelte/store';
-    import type { ServiceDTO } from '$lib/types';
+    import type { ServiceDTO , SpecialistDTO } from '$lib/types';
 
     requireAuth();
     let services: ServiceDTO[] = [];
@@ -22,6 +22,8 @@
     let startDateTime: string = '';  // datetime-local input gives "2026-02-23T10:00"
     let submitting = false;
     let error = '';
+    let specialists: SpecialistDTO[] = [];
+
 
     onMount(async () => {
         const [allServices, allOrgs] = await Promise.all([
@@ -33,8 +35,9 @@
         loading = false;
     });
 
-    function selectService(service: ServiceDTO) {
+    async function selectService(service: ServiceDTO) {
         selectedService = service;
+        specialists = await organizationsApi.getSpecialists(service.organizationId);
         error = '';
     }
 
@@ -72,6 +75,14 @@
     <div class="border rounded-lg p-6 max-w-md">
         <h2 class="text-xl font-semibold mb-4">
             Booking: {selectedService.name}
+
+            <select bind:value={specialistId} class="border rounded px-3 py-3">
+                <option value={null} disabled>Select a specialist</option>
+                {#each specialists as s}
+                    <option  value={s.userId}>{s.fullName}</option>
+                {/each}
+            </select>
+
         </h2>
 
         {#if error}
@@ -80,14 +91,14 @@
 
         <div class="flex flex-col gap-4">
             <div class="flex flex-col gap-1">
-                <label class="text-sm font-medium">Specialist ID</label>
+                <label for="id" class="text-sm font-medium">Specialist ID</label>
                 <input bind:value={specialistId} type="number"
                        placeholder="Enter specialist ID"
                        class="border rounded px-3 py-2" required />
             </div>
 
             <div class="flex flex-col gap-1">
-                <label class="text-sm font-medium">Start Date and time</label>
+                <label for="id" class="text-sm font-medium">Start Date and time</label>
                 <input bind:value={startDateTime} type="datetime-local"
                        class="border rounded px-3 py-2" required />
             </div>

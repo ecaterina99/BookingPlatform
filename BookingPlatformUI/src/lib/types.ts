@@ -41,3 +41,8 @@ export interface BookingDTO {
     end: string;
     status: 'PENDING' | 'CONFIRMED' | 'CANCELLED';
 }
+
+export interface SpecialistDTO {
+    userId:number,
+    fullName: number;
+}
