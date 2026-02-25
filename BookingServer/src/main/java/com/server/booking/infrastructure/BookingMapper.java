@@ -29,6 +29,7 @@ public class BookingMapper {
                 entity.getSpecialistId(),
                 entity.getServiceId(),
                 new TimeSlot(entity.getStartTime(), entity.getEndTime()),
+                entity.getStatus(),
                 entity.getCreatedAt()
         );
     }

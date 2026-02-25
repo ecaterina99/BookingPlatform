@@ -18,10 +18,25 @@
         loading = false;
     });
 
+    let cancelError: string | null = null;
+
     async function cancel(id: number) {
-        await bookingsApi.cancelAsClient(id);
-        bookings = bookings.map(b => b.id === id ? {...b, status: 'CANCELLED'} : b);
+        cancelError = null;
+        try {
+            await bookingsApi.cancelAsClient(id);
+            bookings = bookings.map(b => b.id === id ? {...b, status: 'CANCELLED'} : b);
+        } catch (e: any) {
+            cancelError = e.message;
+        }
     }
+    function formatTime(start: string, end: string): string {
+        const [datePart, startTime] = start.split('T');
+        const [year, month, day] = datePart.split('-');
+        const startHHMM = startTime.substring(0, 5);
+        const endHHMM = end.split('T')[1].substring(0, 5);
+        return `${day}.${month}.${year} ${startHHMM} - ${endHHMM}`;
+    }
+
 </script>
 
 <h1 class="text-2xl font-bold mb-4">My Bookings</h1>
@@ -39,7 +54,7 @@
             <div class="border rounded-lg p-4 flex justify-between items-center">
                 <div>
                     <p class="font-medium">Booking id: {booking.id}</p>
-                    <p class="text-sm text-gray-500">{booking.start} → {booking.end}</p>
+                    <p class="text-sm text-gray-500">{formatTime(booking.start, booking.end)}</p>
                     <p class="text-sm text-gray-500">Specialist id: {booking.specialistId}</p>
                     <span class="text-xs font-semibold px-2 py-0.5 rounded"
                           class:bg-yellow-100={booking.status === 'PENDING'}
@@ -53,6 +68,9 @@
                             class="text-sm text-red-600 hover:underline">
                         Cancel
                     </button>
+                {/if}
+                {#if cancelError}
+                    <p class="text-red-600 text-sm mb-3">{cancelError}</p>
                 {/if}
             </div>
         {/each}
