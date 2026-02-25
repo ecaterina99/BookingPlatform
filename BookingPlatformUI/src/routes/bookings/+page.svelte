@@ -10,10 +10,6 @@
 
     let bookings: BookingDTO[] = [];
     let loading = true;
-    let specialistId: number | null = null;
-    let startDateTime: string = '';
-    let endDateTime: string = '';
-    let error = '';
 
     onMount(async () => {
         const user = get(currentUser);

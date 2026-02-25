@@ -24,7 +24,6 @@
     let selectedService: ServiceDTO | null = null;
     let specialistId: number | null = null;
     let startDateTime: string = '';
-    let endDateTime: string = '';
     let submitting = false;
     let bookingError = '';
 
@@ -62,8 +61,7 @@
                 clientId: user.id,
                 specialistId: specialistId,
                 serviceId: selectedService.id,
-                start: startDateTime,
-                end: endDateTime
+                start: startDateTime
             });
             goto('/bookings');
         } catch (e) {
@@ -111,12 +109,6 @@
                 <div class="flex flex-col gap-1">
                     <label class="text-sm font-medium">Start Date and time</label>
                     <input bind:value={startDateTime} type="datetime-local"
-                           class="border rounded px-3 py-2" required />
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    <label class="text-sm font-medium">End Date and time</label>
-                    <input bind:value={endDateTime} type="datetime-local"
                            class="border rounded px-3 py-2" required />
                 </div>
 

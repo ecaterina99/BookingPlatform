@@ -6,7 +6,6 @@ interface CreateBookingRequest {
     specialistId: number;
     serviceId: number;
     start: string;
-    end: string;
 }
 
 export const bookingsApi = {

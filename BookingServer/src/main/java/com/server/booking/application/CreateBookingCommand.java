@@ -7,7 +7,6 @@ public record CreateBookingCommand(
         int specialistId,
         int serviceId,
         LocalDateTime start,
-        LocalDateTime end,
         LocalDateTime createdAt
 ) {
 }

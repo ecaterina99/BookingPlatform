@@ -77,12 +77,18 @@ public class BookingService {
     public int createBooking(CreateBookingCommand command) {
         validateEntitiesExist(command);
 
-        TimeSlot requestedSlot = new TimeSlot(command.start(), command.end());
+        com.server.service.domain.Service service = serviceRepository.findById(command.serviceId())
+                .orElseThrow(() -> new EntityNotFoundException("Service not found"));
+
+        LocalDateTime endTime = command.start()
+                .plusMinutes(service.getDurationMinutes().minutes());
+
+        TimeSlot requestedSlot = new TimeSlot(command.start(), endTime);
 
         Schedule schedule = scheduleRepository.findBySpecialistId(command.specialistId())
                 .orElseThrow(() -> new EntityNotFoundException("Schedule not found"));
 
-        WorkingHours requestedHours = new WorkingHours(command.start(), command.end());
+        WorkingHours requestedHours = new WorkingHours(command.start(), endTime);
         if (!schedule.isAvailable(requestedHours)) {
             throw new IllegalStateException("Specialist is not available at this time");
         }
@@ -90,6 +96,7 @@ public class BookingService {
         if (!availabilityService.hasNoConflicts(requestedSlot, existingBookings)) {
             throw new IllegalStateException("Time slot already booked");
         }
+
 
         Booking booking = new Booking(
                 0,
