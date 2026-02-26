@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { auth, isLoggedIn, currentUser, isGlobalAdmin } from '$lib/stores/auth';
-    import { goto } from '$app/navigation';
+    import {auth, isLoggedIn, currentUser, isGlobalAdmin} from '$lib/stores/auth';
+    import {goto} from '$app/navigation';
 
     function logout() {
         auth.logout();
@@ -9,7 +9,7 @@
 </script>
 
 <nav class="flex items-center gap-6 px-6 py-3 border-b">
-    <a href="/static" class="font-bold">BookingApp</a>
+    <a href="/dashboard" class="font-bold">BookingApp</a>
     <a href="/organizations">Organizations</a>
     <a href="/bookings/new">Book a service</a>
 

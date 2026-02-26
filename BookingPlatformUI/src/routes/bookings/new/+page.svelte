@@ -1,25 +1,22 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
-    import { goto } from '$app/navigation';
-    import { servicesApi } from '$lib/api/services';
-    import { bookingsApi } from '$lib/api/bookings';
-    import { organizationsApi } from '$lib/api/organizations';
-    import { currentUser } from '$lib/stores/auth';
-    import { requireAuth } from '$lib/guards';
-    import { ApiError } from '$lib/api/client';
-    import { get } from 'svelte/store';
-    import type { ServiceDTO , SpecialistDTO } from '$lib/types';
+    import {onMount} from 'svelte';
+    import {goto} from '$app/navigation';
+    import {servicesApi} from '$lib/api/services';
+    import {bookingsApi} from '$lib/api/bookings';
+    import {organizationsApi} from '$lib/api/organizations';
+    import {currentUser} from '$lib/stores/auth';
+    import {requireAuth} from '$lib/guards';
+    import {ApiError} from '$lib/api/client';
+    import {get} from 'svelte/store';
+    import type {ServiceDTO, SpecialistDTO} from '$lib/types';
 
     requireAuth();
     let services: ServiceDTO[] = [];
     let orgNames: Map<number, string> = new Map();
     let loading = true;
-
-
     let selectedService: ServiceDTO | null = null;
-
     let specialistId: number | null = null;
-    let startDateTime: string = '';  // datetime-local input gives "2026-02-23T10:00"
+    let startDateTime: string = '';
     let submitting = false;
     let error = '';
     let specialists: SpecialistDTO[] = [];
@@ -49,16 +46,16 @@
 
         submitting = true;
         error = '';
-        try{
-         await bookingsApi.create({
-                 clientId: user.id,
-             specialistId: specialistId,
-             serviceId: selectedService.id,
-             start: startDateTime
-             }
-         );
-         goto('/bookings');
-    }catch (e) {
+        try {
+            await bookingsApi.create({
+                    clientId: user.id,
+                    specialistId: specialistId,
+                    serviceId: selectedService.id,
+                    start: startDateTime
+                }
+            );
+            goto('/bookings');
+        } catch (e) {
             if (e instanceof ApiError) error = e.message;
             else error = 'Something went wrong.';
         } finally {
@@ -79,7 +76,7 @@
             <select bind:value={specialistId} class="border rounded px-3 py-3">
                 <option value={null} disabled>Select a specialist</option>
                 {#each specialists as s}
-                    <option  value={s.userId}>{s.fullName}</option>
+                    <option value={s.userId}>{s.fullName}</option>
                 {/each}
             </select>
 
@@ -94,13 +91,13 @@
                 <label for="id" class="text-sm font-medium">Specialist ID</label>
                 <input bind:value={specialistId} type="number"
                        placeholder="Enter specialist ID"
-                       class="border rounded px-3 py-2" required />
+                       class="border rounded px-3 py-2" required/>
             </div>
 
             <div class="flex flex-col gap-1">
                 <label for="id" class="text-sm font-medium">Start Date and time</label>
                 <input bind:value={startDateTime} type="datetime-local"
-                       class="border rounded px-3 py-2" required />
+                       class="border rounded px-3 py-2" required/>
             </div>
 
             <div class="flex gap-3">

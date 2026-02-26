@@ -61,12 +61,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     return JSON.parse(text);
 }
 
-// Public API helper methods
+// Public API helper methods - just an object that wraps HTTP methods
 export const api = {
 
     get: <T>(path: string) => request<T>(path),
     post: <T>(path: string, body: unknown) =>
-        request<T>(path, {method: 'POST', body: JSON.stringify(body)}),
+        request<T>(path, {method: 'POST', body: JSON.stringify(body)}), //converts a JS object to JSON
     patch: <T>(path: string, body: unknown) =>
         request<T>(path, {method: 'PATCH', body: JSON.stringify(body)}),
     delete: <T>(path: string) =>

@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { goto } from '$app/navigation';
-    import { authApi } from '$lib/api/auth';
-    import { auth } from '$lib/stores/auth';
-    import { ApiError } from '$lib/api/client';
+    import {goto} from '$app/navigation';
+    import {authApi} from '$lib/api/auth';
+    import {auth} from '$lib/stores/auth';
+    import {ApiError} from '$lib/api/client';
 
     let fullName = '';
     let email = '';
@@ -18,7 +18,7 @@
         try {
             const res = await authApi.register(email, password, fullName);
             // Seed the token first so getCurrent() can attach it to the request
-            auth.login(res.token, { id: 0, email: '', fullName: '', globalRole: 'USER' });
+            auth.login(res.token, {id: 0, email: '', fullName: '', globalRole: 'USER'});
             const user = await authApi.getCurrent();
             auth.login(res.token, user);
             goto('/');
@@ -45,7 +45,7 @@
 
         <div class="flex flex-col gap-1">
             <input bind:value={fullName} type="text" placeholder="Full name"
-                   class="border rounded px-3 py-2" required />
+                   class="border rounded px-3 py-2" required/>
             {#if fieldErrors.fullName}
                 <p class="text-red-500 text-xs">{fieldErrors.fullName}</p>
             {/if}
@@ -53,7 +53,7 @@
 
         <div class="flex flex-col gap-1">
             <input bind:value={email} type="email" placeholder="Email"
-                   class="border rounded px-3 py-2" required />
+                   class="border rounded px-3 py-2" required/>
             {#if fieldErrors.email}
                 <p class="text-red-500 text-xs">{fieldErrors.email}</p>
             {/if}
@@ -61,7 +61,7 @@
 
         <div class="flex flex-col gap-1">
             <input bind:value={password} type="password" placeholder="Password (min. 6 characters)"
-                   class="border rounded px-3 py-2" required minlength="6" />
+                   class="border rounded px-3 py-2" required minlength="6"/>
             {#if fieldErrors.password}
                 <p class="text-red-500 text-xs">{fieldErrors.password}</p>
             {/if}

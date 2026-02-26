@@ -29,6 +29,7 @@
             cancelError = e.message;
         }
     }
+
     function formatTime(start: string, end: string): string {
         const [datePart, startTime] = start.split('T');
         const [year, month, day] = datePart.split('-');

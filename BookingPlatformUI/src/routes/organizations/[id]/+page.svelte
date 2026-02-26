@@ -1,10 +1,10 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import {onMount} from 'svelte';
     // SvelteKit store that contains information about the current route.
-    import { page } from '$app/stores';
-    import { organizationsApi } from '$lib/api/organizations';
-    import { servicesApi } from '$lib/api/services';
-    import type { OrganizationDTO, ServiceDTO, SpecialistDTO } from '$lib/types';
+    import {page} from '$app/stores';
+    import {organizationsApi} from '$lib/api/organizations';
+    import {servicesApi} from '$lib/api/services';
+    import type {OrganizationDTO, ServiceDTO, SpecialistDTO} from '$lib/types';
     import {get} from "svelte/store";
     import {currentUser} from "$lib/stores/auth";
     import {bookingsApi} from "$lib/api/bookings";
@@ -97,7 +97,7 @@
             <select bind:value={specialistId} class="border rounded px-3 py-3">
                 <option value={null} disabled>Select a specialist</option>
                 {#each specialists as s}
-                    <option  value={s.userId}>{s.fullName}</option>
+                    <option value={s.userId}>{s.fullName}</option>
                 {/each}
             </select>
 
@@ -110,13 +110,13 @@
                     <label class="text-sm font-medium">Specialist ID</label>
                     <input bind:value={specialistId} type="number"
                            placeholder="Enter specialist ID"
-                           class="border rounded px-3 py-2" required />
+                           class="border rounded px-3 py-2" required/>
                 </div>
 
                 <div class="flex flex-col gap-1">
                     <label for="id" class="text-sm font-medium">Start Date and time</label>
                     <input bind:value={startDateTime} type="datetime-local"
-                           class="border rounded px-3 py-2" required />
+                           class="border rounded px-3 py-2" required/>
                 </div>
 
                 <div class="flex gap-3">
@@ -131,7 +131,7 @@
                 </div>
             </div>
         </div>
-        {:else}
+    {:else}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             {#each services as serv}
                 <div class="border rounded-lg p-4">

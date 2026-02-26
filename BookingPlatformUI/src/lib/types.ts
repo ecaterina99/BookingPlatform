@@ -43,6 +43,6 @@ export interface BookingDTO {
 }
 
 export interface SpecialistDTO {
-    userId:number,
-    fullName: number;
+    userId: number,
+    fullName: string;
 }
