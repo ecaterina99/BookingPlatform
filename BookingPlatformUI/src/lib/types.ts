@@ -46,3 +46,10 @@ export interface SpecialistDTO {
     userId: number,
     fullName: string;
 }
+
+export interface OrganizationMemberDTO {
+    id: number,
+    organizationId: number;
+    userId: number;
+    role: 'ADMIN' | 'SPECIALIST';
+}

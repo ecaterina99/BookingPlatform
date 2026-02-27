@@ -87,12 +87,7 @@
         {/if}
 
         <div class="flex flex-col gap-4">
-            <div class="flex flex-col gap-1">
-                <label for="id" class="text-sm font-medium">Specialist ID</label>
-                <input bind:value={specialistId} type="number"
-                       placeholder="Enter specialist ID"
-                       class="border rounded px-3 py-2" required/>
-            </div>
+
 
             <div class="flex flex-col gap-1">
                 <label for="id" class="text-sm font-medium">Start Date and time</label>

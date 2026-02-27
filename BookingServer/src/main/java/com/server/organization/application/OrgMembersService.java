@@ -88,5 +88,11 @@ public class OrgMembersService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<OrganizationMemberDTO> getMyMemberships(int userId) {
+        return repository.findByUserId(userId).stream()
+                .map(memberMapper::toDTO)
+                .toList();
+    }
 
 }

@@ -3,6 +3,7 @@
     import {authApi} from '$lib/api/auth';
     import {auth} from '$lib/stores/auth';
     import {ApiError} from '$lib/api/client';
+    import {organizationsApi} from "$lib/api/organizations";
 
     let fullName = '';
     let email = '';
@@ -16,12 +17,14 @@
         fieldErrors = {};
         loading = true;
         try {
-            const res = await authApi.register(email, password, fullName);
-            // Seed the token first so getCurrent() can attach it to the request
-            auth.login(res.token, {id: 0, email: '', fullName: '', globalRole: 'USER'});
-            const user = await authApi.getCurrent();
-            auth.login(res.token, user);
-            goto('/');
+            const res = await authApi.login(email, password);
+            auth.login(res.token, {id: 0, email: '', fullName: '', globalRole: 'USER'},[]);
+            const [user, memberships] = await Promise.all([
+                authApi.getCurrent(),
+                organizationsApi.getMembership()
+            ])
+            auth.login(res.token, user,memberships);
+            goto('/dashboard');
         } catch (e) {
             if (e instanceof ApiError) {
                 if (e.fieldErrors) fieldErrors = e.fieldErrors;

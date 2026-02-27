@@ -3,6 +3,7 @@
     import {authApi} from '$lib/api/auth';
     import {auth} from '$lib/stores/auth';
     import {ApiError} from '$lib/api/client';
+    import {organizationsApi} from '$lib/api/organizations';
 
     let email = '';
     let password = '';
@@ -14,10 +15,13 @@
         loading = true;
         try {
             const res = await authApi.login(email, password);
-            auth.login(res.token, {id: 0, email: '', fullName: '', globalRole: 'USER'});
-            const user = await authApi.getCurrent();
-            auth.login(res.token, user);
-            goto('/');
+            auth.login(res.token, {id: 0, email: '', fullName: '', globalRole: 'USER'},[]);
+            const [user, memberships] = await Promise.all([
+                authApi.getCurrent(),
+                organizationsApi.getMembership()
+            ])
+            auth.login(res.token, user,memberships);
+            goto('/dashboard');
         } catch (e) {
             if (e instanceof ApiError) error = e.message;
             else error = 'Cannot reach the server. Is Spring Boot running on port 8085?';

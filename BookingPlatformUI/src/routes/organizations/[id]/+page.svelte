@@ -27,7 +27,7 @@
     let bookingError = '';
     let error = '';
 
-    // Fetch data when component is mounted.
+    // Fetch data when Page is mounted.
     onMount(async () => {
         try {
             const [fetchedOrg, allServices] = await Promise.all([

@@ -2,6 +2,7 @@ package com.server.organization.api;
 
 import com.server.organization.application.AddMemberCommand;
 import com.server.organization.application.OrgMembersService;
+import com.server.shared.infrastructure.security.SecurityCurrentUserProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+
 import java.util.List;
 
 @RestController
@@ -24,9 +26,12 @@ import java.util.List;
 public class OrgMembersController {
 
     private final OrgMembersService orgMembersService;
+    private final SecurityCurrentUserProvider currentUserProvider;
 
-    public OrgMembersController(OrgMembersService orgMembersService) {
+
+    public OrgMembersController(OrgMembersService orgMembersService, SecurityCurrentUserProvider currentUserProvider) {
         this.orgMembersService = orgMembersService;
+        this.currentUserProvider = currentUserProvider;
     }
 
     @PostMapping("/add/{organizationId}")
@@ -74,4 +79,11 @@ public class OrgMembersController {
     public List<SpecialistDTO> getSpecialists(@PathVariable int organizationId) {
         return orgMembersService.getSpecialists(organizationId);
     }
+
+    @GetMapping("/me")
+    @Operation(summary = "Get current user's memberships across all organizations")
+    public List<OrganizationMemberDTO> getMyMemberships() {
+        return orgMembersService.getMyMemberships(currentUserProvider.getUserId());
+    }
+
 }
