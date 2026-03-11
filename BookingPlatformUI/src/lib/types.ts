@@ -53,3 +53,16 @@ export interface OrganizationMemberDTO {
     userId: number;
     role: 'ADMIN' | 'SPECIALIST';
 }
+
+export type DayOfWeek = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
+
+export interface WorkingDayDTO {
+    dayOfWeek: DayOfWeek;
+    start: string;
+    end: string;
+}
+
+export interface ScheduleDTO {
+    specialistId: number;
+    workingDays: WorkingDayDTO[];
+}
