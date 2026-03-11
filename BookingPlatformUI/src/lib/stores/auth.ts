@@ -33,3 +33,4 @@ export const isLoggedIn = derived(auth, $a => $a.token !== null);
 export const currentUser = derived(auth, $a => $a.user);
 export const isGlobalAdmin = derived(auth, $a => $a.user?.globalRole === 'GLOBAL_ADMIN');
 export const isSpecialist = derived(auth, $a => $a.memberships.some(m => m.role === 'SPECIALIST'));
+export const isOrgAdmin = derived(auth, $a => $a.memberships.some(m => m.role === 'ADMIN'));

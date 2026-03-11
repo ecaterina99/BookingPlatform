@@ -17,7 +17,7 @@
         fieldErrors = {};
         loading = true;
         try {
-            const res = await authApi.login(email, password);
+            const res = await authApi.register(email, password, fullName);
             auth.login(res.token, {id: 0, email: '', fullName: '', globalRole: 'USER'},[]);
             const [user, memberships] = await Promise.all([
                 authApi.getCurrent(),

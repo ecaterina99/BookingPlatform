@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {auth, isLoggedIn, currentUser, isGlobalAdmin, isSpecialist} from '$lib/stores/auth';
+    import {auth, isLoggedIn, currentUser, isGlobalAdmin, isSpecialist, isOrgAdmin} from '$lib/stores/auth';
     import {goto} from '$app/navigation';
 
     function logout() {
@@ -17,10 +17,13 @@
         <a href="/bookings">My Bookings</a>
         <a href="/profile">Profile</a>
         {#if $isGlobalAdmin}
-            <a href="/admin/users">Admin</a>
+            <a href="/global-admin/users">Global admin</a>
         {/if}
         {#if $isSpecialist}
             <a href="/specialist">Specialist</a>
+        {/if}
+        {#if $isOrgAdmin}
+            <a href="/admin">Admin</a>
         {/if}
         <span class="ml-auto text-sm text-gray-500">Hi, {$currentUser?.fullName}</span>
         <button on:click={logout} class="text-sm text-red-600">Logout</button>

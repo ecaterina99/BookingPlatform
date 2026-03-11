@@ -1,0 +1,119 @@
+<script lang="ts">
+    import {onMount} from 'svelte';
+    // SvelteKit store that contains information about the current route.
+    import {page} from '$app/stores';
+    import {organizationsApi} from '$lib/api/organizations';
+    import {servicesApi} from '$lib/api/services';
+    import type {OrganizationDTO, ServiceDTO, SpecialistDTO} from '$lib/types';
+    import {get} from "svelte/store";
+    import {currentUser} from "$lib/stores/auth";
+    import {bookingsApi} from "$lib/api/bookings";
+    import {goto} from "$app/navigation";
+    import {ApiError} from "$lib/api/client";
+
+    // SvelteKit store that contains information about the current route.
+    const id = Number($page.params.id);
+
+    // Holds the loaded organization data.
+    // Initially null because data is not yet fetched.
+    let org: OrganizationDTO | null = null;
+    let services: ServiceDTO[] = [];
+    let loading = true;
+    let specialists: SpecialistDTO[] = [];
+    let selectedService: ServiceDTO | null = null;
+    let specialistId: number | null = null;
+    let startDateTime: string = '';
+    let submitting = false;
+    let bookingError = '';
+    let error = '';
+
+    // Fetch data when Page is mounted.
+    onMount(async () => {
+        try {
+            const [fetchedOrg, allServices] = await Promise.all([
+                organizationsApi.getById(id),
+                servicesApi.getAll()
+            ]);
+            org = fetchedOrg;
+            services = allServices.filter(s => s.organizationId === id);
+        } catch (e) {
+            error = 'Failed to load organization.';
+        } finally {
+            loading = false;
+        }
+    });
+
+    async function selectService(service: ServiceDTO) {
+        selectedService = service;
+        specialists = await organizationsApi.getSpecialists(service.organizationId);
+        error = '';
+    }
+    </script>
+
+    <h1>Organization admin page</h1>
+
+
+{#if loading}
+    <p>Loading...</p>
+{:else if error}
+    <p class="text-red-600">{error}</p>
+{:else if org}
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold mb-1">{org.name}</h1>
+        <p class="text-gray-500">{org.city} · {org.address}</p>
+        <p class="text-gray-500">{org.phone} · {org.email}</p>
+    </div>
+
+    <h2 class="text-xl font-semibold mb-4">Services</h2>
+
+    {#if services.length === 0}
+        <p class="text-gray-500">No services available for this organization.</p>
+    {:else if selectedService}
+        <div class="border rounded-lg p-6 max-w-md">
+            <h2 class="text-xl font-semibold mb-4">
+                Booking: {selectedService.name}
+            </h2>
+            <select bind:value={specialistId} class="border rounded px-3 py-3">
+                <option value={null} disabled>Select a specialist</option>
+                {#each specialists as s}
+                    <option value={s.userId}>{s.fullName}</option>
+                {/each}
+            </select>
+
+            {#if bookingError}
+                <p class="text-red-600 text-sm mb-4">{bookingError}</p>
+            {/if}
+
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-1">
+                    <label class="text-sm font-medium">Specialist ID</label>
+                    <input bind:value={specialistId} type="number"
+                           placeholder="Enter specialist ID"
+                           class="border rounded px-3 py-2" required/>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label for="id" class="text-sm font-medium">Start Date and time</label>
+                    <input bind:value={startDateTime} type="datetime-local"
+                           class="border rounded px-3 py-2" required/>
+                </div>
+
+            </div>
+        </div>
+    {:else}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {#each services as serv}
+                <div class="border rounded-lg p-4">
+                    <h3 class="font-semibold text-lg">{serv.name}</h3>
+                    <p class="text-gray-500 text-sm mb-2">{serv.description}</p>
+                    <p class="text-sm">Duration: {serv.durationMinutes} min</p>
+                    <p class="text-sm">Price: {serv.price}</p>
+                    <button on:click={() => selectService(serv)}
+                            class="mt-3 bg-blue-600 text-white text-sm px-3 py-1 rounded">
+                        Book
+                    </button>
+                </div>
+            {/each}
+        </div>
+    {/if}
+{/if}

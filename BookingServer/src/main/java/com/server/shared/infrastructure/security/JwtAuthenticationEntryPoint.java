@@ -31,16 +31,6 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             HttpServletResponse response,
             AuthenticationException authException
     ) throws IOException {
-        // Log the actual authentication failure reason
-        System.err.println("=== JWT Authentication Failed ===");
-        System.err.println("Request URI: " + request.getRequestURI());
-        System.err.println("Request Method: " + request.getMethod());
-        System.err.println("Authorization Header: " + request.getHeader("Authorization"));
-        System.err.println("Exception: " + authException.getClass().getSimpleName());
-        System.err.println("Message: " + authException.getMessage());
-        if (authException.getCause() != null) {
-            System.err.println("Cause: " + authException.getCause().getMessage());
-        }
         delegate.commence(request, response, authException);
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
