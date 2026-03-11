@@ -1,9 +1,14 @@
 <script>
     import '../app.css';
     import Navbar from '$lib/components/Navbar.svelte';
+    import { page } from '$app/stores';
 </script>
 
 <Navbar/>
-<main class="max-w-5xl mx-auto px-4 py-8">
+{#if $page.url.pathname.startsWith('/admin')}
     <slot/>
-</main>
+{:else}
+    <main class="max-w-5xl mx-auto px-4 py-8">
+        <slot/>
+    </main>
+{/if}

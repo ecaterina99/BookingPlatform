@@ -40,13 +40,24 @@ public class UserController {
         return userService.getAllUsers();
     }
 
+    @GetMapping("/search")
+    @Operation(summary = "Search users by name",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "Users found",
+            content = @Content(mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = UserDTO.class))))
+    @PreAuthorize("isAuthenticated()")
+    public List<UserDTO> searchUsers(@RequestParam String name) {
+        return userService.searchByName(name);
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Retrieve user by ID",
             security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponse(responseCode = "200", description = "User found",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = UserDTO.class)))
-    @PreAuthorize("@orgAccessEvaluator.isResourceOwner(#id) or hasRole('GLOBAL_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public UserDTO getUserById(
             @Parameter(description = "ID of user to retrieve", example = "1")
             @PathVariable int id) {

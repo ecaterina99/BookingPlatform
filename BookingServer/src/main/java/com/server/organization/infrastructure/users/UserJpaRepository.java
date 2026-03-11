@@ -30,6 +30,12 @@ public class UserJpaRepository implements UserRepository {
     }
 
     @Override
+    public List<User> findByNameContaining(String name) {
+        return jpaUserRepository.findByFullNameContainingIgnoreCase(name)
+                .stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
     public Optional<User> findByEmail(UserEmail email) {
         return jpaUserRepository.findByEmail(email.value())
                 .map(mapper::toDomain);

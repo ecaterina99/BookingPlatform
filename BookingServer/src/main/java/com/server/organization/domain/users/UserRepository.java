@@ -8,6 +8,8 @@ public interface UserRepository {
 
     List<User> findAll();
 
+    List<User> findByNameContaining(String name);
+
     Optional<User> findByEmail(UserEmail email);
 
     User save(User user);

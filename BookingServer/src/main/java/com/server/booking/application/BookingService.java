@@ -138,6 +138,13 @@ public class BookingService {
     }
 
     @Transactional
+    public void cancelBooking(int bookingId) {
+        Booking booking = findBookingById(bookingId);
+        booking.cancelBySpecialist();
+        bookingRepository.save(booking);
+    }
+
+    @Transactional
     public void cancelBookingBySpecialist(int bookingId, int specialistId) {
         Booking booking = findBookingById(bookingId);
 

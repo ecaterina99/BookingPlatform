@@ -86,7 +86,14 @@ public class OrganizationAccessEvaluator {
         int userId = currentUserProvider.getUserId();
         Optional<Booking> booking = bookingRepository.findById(bookingId);
 
-        return booking.isPresent() && booking.get().getSpecialistId() == userId;
+        if (booking.isEmpty()) return false;
+
+        if (booking.get().getSpecialistId() == userId) return true;
+
+        // Also allow org admins of the specialist's organization
+        List<OrganizationMember> specialistMemberships = memberRepository.findByUserId(booking.get().getSpecialistId());
+        return specialistMemberships.stream()
+                .anyMatch(m -> isOrganizationAdmin(m.getOrganizationId()));
     }
 
     /**
@@ -112,6 +119,19 @@ public class OrganizationAccessEvaluator {
         Optional<Booking> booking = bookingRepository.findById(bookingId);
 
         return booking.isPresent() && booking.get().getClientId() == userId;
+    }
+
+    /**
+     * Check if current user is an ADMIN of any organization the given specialist belongs to
+     */
+    public boolean isAdminOfSpecialistsOrg(int specialistId) {
+        if (currentUserProvider.isGlobalAdmin()) {
+            return true;
+        }
+
+        List<OrganizationMember> specialistMemberships = memberRepository.findByUserId(specialistId);
+        return specialistMemberships.stream()
+                .anyMatch(m -> isOrganizationAdmin(m.getOrganizationId()));
     }
 
     /**

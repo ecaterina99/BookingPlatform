@@ -48,7 +48,7 @@ public class BookingController {
     @ApiResponse(responseCode = "200", description = "Successfully retrieved all specialist bookings",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = BookingDTO.class)))
-    @PreAuthorize("@orgAccessEvaluator.isResourceOwner(#specialistId) or hasRole('GLOBAL_ADMIN')")
+    @PreAuthorize("@orgAccessEvaluator.isResourceOwner(#specialistId) or @orgAccessEvaluator.isAdminOfSpecialistsOrg(#specialistId)")
     public List<BookingDTO> getBookingBySpecialistId(
             @Parameter(description = "ID of specialist", example = "1")
             @PathVariable int specialistId) {
@@ -108,8 +108,7 @@ public class BookingController {
     public void cancelBookingBySpecialist(
             @Parameter(description = "ID of booking to cancel", example = "1")
             @PathVariable int id) {
-        int specialistId = currentUserProvider.getUserId();
-        bookingService.cancelBookingBySpecialist(id, specialistId);
+        bookingService.cancelBooking(id);
     }
 
     @PatchMapping("/{id}/cancel/client")

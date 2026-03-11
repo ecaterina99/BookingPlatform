@@ -35,6 +35,14 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    public List<UserDTO> searchByName(String name) {
+        return userRepository.findByNameContaining(name)
+                .stream()
+                .map(userMapper::toDTO)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public UserDTO getUserById(int id) {
         User user = findUserById(id);
         return userMapper.toDTO(user);
