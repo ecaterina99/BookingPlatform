@@ -11,20 +11,22 @@ public class Service {
     private String description;
     private ServiceDuration durationMinutes;
     private ServicePrice price;
+    private ServiceCategory category;
 
-
-    public Service(int id, ServiceName name, Integer organizationId, String description, ServiceDuration durationMinutes, ServicePrice price) {
+    public Service(int id, ServiceName name, Integer organizationId, String description, ServiceDuration durationMinutes, ServicePrice price, ServiceCategory category) {
         if (name == null) throw new IllegalArgumentException("name is required");
         if (description == null || description.isBlank()) throw new IllegalArgumentException("description is required");
         if (durationMinutes == null) throw new IllegalArgumentException("durationMinutes is required");
         if (price == null) throw new IllegalArgumentException("price is required");
         if (organizationId == null) throw new IllegalArgumentException("organizationId is required");
+        if (category == null) throw new IllegalArgumentException("category is required");
         this.id = id;
         this.name = name;
         this.organizationId = organizationId;
         this.description = description;
         this.durationMinutes = durationMinutes;
         this.price = price;
+        this.category = category;
     }
 
     public void changeName(ServiceName name) {
@@ -52,4 +54,8 @@ public class Service {
         this.organizationId = organizationId;
     }
 
+    public void changeCategory(ServiceCategory category) {
+        if (category == null) throw new IllegalArgumentException("category is required");
+        this.category = category;
+    }
 }

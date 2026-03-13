@@ -3,6 +3,7 @@ package com.server.service.api;
 import com.server.service.application.AddServiceCommand;
 import com.server.service.application.ServiceOfferingService;
 import com.server.service.application.UpdateServiceCommand;
+import com.server.service.domain.ServiceCategory;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -31,11 +32,21 @@ public class ServicesController {
     }
 
     @GetMapping
-    @Operation(summary = "Retrieve all services (public)")
-    @ApiResponse(responseCode = "200", description = "Successfully retrieved all services",
+    @Operation(summary = "Retrieve all services, optionally filtered by category (public)")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved services",
             content = @Content(mediaType = "application/json",
                     array = @ArraySchema(schema = @Schema(implementation = ServiceDTO.class))))
-    public List<ServiceDTO> getAllServices() {
+    public List<ServiceDTO> getAllServices(
+            @Parameter(description = "Filter by category")
+            @RequestParam(required = false) ServiceCategory category,
+            @Parameter(description = "Filter by organization ID")
+            @RequestParam(required = false) Integer organizationId) {
+        if (category != null) {
+            return serviceOfferingService.getServicesByCategory(category);
+        }
+        if (organizationId != null) {
+            return serviceOfferingService.getServicesByOrganizationId(organizationId);
+        }
         return serviceOfferingService.getAllServices();
     }
 
@@ -59,13 +70,17 @@ public class ServicesController {
                     schema = @Schema(implementation = ServiceDTO.class)))
     @PreAuthorize("@orgAccessEvaluator.isOrganizationAdmin(#request.organizationId()) or hasRole('GLOBAL_ADMIN')")
     public int addService(@RequestBody CreateServiceRequest request) {
+        ServiceCategory category = request.category() != null
+                ? request.category()
+                : ServiceCategory.OTHER;
         return serviceOfferingService.addService(
                 new AddServiceCommand(
                         request.name(),
                         request.organizationId(),
                         request.description(),
                         request.durationMinutes(),
-                        request.price()
+                        request.price(),
+                        category
                 )
         );
     }
@@ -88,7 +103,7 @@ public class ServicesController {
     @PreAuthorize("@orgAccessEvaluator.canManageService(#id) or hasRole('GLOBAL_ADMIN')")
     public void updateService(@PathVariable int id, @Valid @RequestBody UpdateServiceRequest request) {
         serviceOfferingService.updateService(
-                new UpdateServiceCommand(id, request.name(), request.organizationId(), request.description(), request.durationMinutes(), request.price())
+                new UpdateServiceCommand(id, request.name(), request.organizationId(), request.description(), request.durationMinutes(), request.price(), request.category())
         );
     }
 }

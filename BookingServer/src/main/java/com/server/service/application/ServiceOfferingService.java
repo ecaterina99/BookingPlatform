@@ -1,6 +1,7 @@
 package com.server.service.application;
 
 import com.server.service.api.ServiceDTO;
+import com.server.service.domain.ServiceCategory;
 import com.server.service.domain.ServiceDuration;
 import com.server.service.domain.ServiceName;
 import com.server.service.domain.ServicePrice;
@@ -35,6 +36,16 @@ public class ServiceOfferingService {
         return services.stream().map(serviceMapper::toDTO).toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<ServiceDTO> getServicesByCategory(ServiceCategory category) {
+        return serviceRepository.findByCategory(category).stream().map(serviceMapper::toDTO).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ServiceDTO> getServicesByOrganizationId(int organizationId) {
+        return serviceRepository.findByOrganizationId(organizationId).stream().map(serviceMapper::toDTO).toList();
+    }
+
     @Transactional
     public int addService(AddServiceCommand command) {
         com.server.service.domain.Service service = new com.server.service.domain.Service(
@@ -43,11 +54,13 @@ public class ServiceOfferingService {
                 command.organizationId(),
                 command.description(),
                 new ServiceDuration(command.durationMinutes()),
-                new ServicePrice(command.price())
+                new ServicePrice(command.price()),
+                command.category()
         );
         return serviceRepository.save(service).getId();
     }
 
+    @Transactional
     public void updateService(UpdateServiceCommand command) {
         com.server.service.domain.Service service = findServiceById(command.id());
 
@@ -65,6 +78,9 @@ public class ServiceOfferingService {
         }
         if (command.price() != null) {
             service.changePrice(new ServicePrice(command.price()));
+        }
+        if (command.category() != null) {
+            service.changeCategory(command.category());
         }
         serviceRepository.save(service);
     }

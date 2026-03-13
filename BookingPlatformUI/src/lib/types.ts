@@ -12,6 +12,7 @@ export interface UserDTO {
     email: string;
     fullName: string;
     globalRole: 'USER' | 'GLOBAL_ADMIN';
+    accountStatus: 'ACTIVE' | 'DEACTIVATED';
 }
 
 export interface OrganizationDTO {
@@ -23,6 +24,8 @@ export interface OrganizationDTO {
     email: string;
 }
 
+export type ServiceCategoryType = 'MAKEUP' | 'NAILS' | 'BARBER' | 'MASSAGE' | 'TATTOO' | 'HAIR' | 'HEALTH_AND_FITNESS' | 'SKIN_CARE' | 'OTHER';
+
 export interface ServiceDTO {
     id: number;
     name: string;
@@ -30,6 +33,7 @@ export interface ServiceDTO {
     description: string;
     durationMinutes: number;
     price: number;
+    category: ServiceCategoryType;
 }
 
 export interface BookingDTO {

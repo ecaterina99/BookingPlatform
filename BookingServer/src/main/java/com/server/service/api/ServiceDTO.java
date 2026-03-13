@@ -6,6 +6,7 @@ public record ServiceDTO(
         int organizationId,
         String description,
         int durationMinutes,
-        int price
+        int price,
+        String category
 ) {
 }

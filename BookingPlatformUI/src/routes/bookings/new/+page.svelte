@@ -9,15 +9,29 @@
     import {requireAuth} from '$lib/guards';
     import {ApiError} from '$lib/api/client';
     import {get} from 'svelte/store';
-    import type {ServiceDTO, SpecialistDTO, ScheduleDTO, DayOfWeek} from '$lib/types';
+    import type {ServiceDTO, SpecialistDTO, ScheduleDTO, DayOfWeek, ServiceCategoryType} from '$lib/types';
 
     requireAuth();
 
+    const CATEGORIES: { value: ServiceCategoryType | 'ALL'; label: string }[] = [
+        { value: 'ALL', label: 'All' },
+        { value: 'MAKEUP', label: 'Makeup' },
+        { value: 'NAILS', label: 'Nails' },
+        { value: 'BARBER', label: 'Barber' },
+        { value: 'MASSAGE', label: 'Massage' },
+        { value: 'TATTOO', label: 'Tattoo' },
+        { value: 'HEALTH_AND_FITNESS', label: 'Health & Fitness' },
+        { value: 'SKIN_CARE', label: 'Skin Care' },
+        { value: 'OTHER', label: 'Other' },
+    ];
+
     // ── Services list ─────────────────────────────────────────────
     let services: ServiceDTO[] = [];
+    let allServices: ServiceDTO[] = [];
     let orgNames = new Map<number, string>();
     let loading = true;
     let selectedService: ServiceDTO | null = null;
+    let activeCategory: ServiceCategoryType | 'ALL' = 'ALL';
     let specialists: SpecialistDTO[] = [];
 
     // ── Booking form ──────────────────────────────────────────────
@@ -94,12 +108,22 @@
         : [];
     $: startDateTime = selectedDate && selectedTime ? `${selectedDate}T${selectedTime}` : '';
 
+    function filterByCategory(cat: ServiceCategoryType | 'ALL') {
+        activeCategory = cat;
+        if (cat === 'ALL') {
+            services = allServices;
+        } else {
+            services = allServices.filter(s => s.category === cat);
+        }
+    }
+
     onMount(async () => {
-        const [allServices, allOrgs] = await Promise.all([
+        const [fetchedServices, allOrgs] = await Promise.all([
             servicesApi.getAll(),
             organizationsApi.getAll()
         ]);
-        services = allServices;
+        allServices = fetchedServices;
+        services = fetchedServices;
         orgNames = new Map(allOrgs.map(o => [o.id, o.name]));
         loading = false;
     });
@@ -282,18 +306,44 @@
         {/if}
     </div>
 {:else}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {#each services as serv}
-            <div class="border rounded-lg p-4 hover:shadow transition">
-                <h2 class="font-semibold text-lg">{serv.name}</h2>
-                <p class="text-gray-500 text-sm">{serv.description}</p>
-                <p class="text-gray-500 text-sm">{orgNames.get(serv.organizationId) ?? 'Unknown'}</p>
-                <p class="text-gray-500 text-sm">Duration: {serv.durationMinutes} min · Price: {serv.price}</p>
-                <button on:click={() => selectService(serv)}
-                        class="mt-3 bg-blue-600 text-white text-sm px-3 py-1 rounded">
-                    Book
-                </button>
-            </div>
+    <!-- Category filter tabs -->
+    <div class="flex flex-wrap gap-2 mb-6">
+        {#each CATEGORIES as cat}
+            <button
+                on:click={() => filterByCategory(cat.value)}
+                class="px-4 py-2 rounded-full text-sm font-medium transition"
+                class:bg-blue-600={activeCategory === cat.value}
+                class:text-white={activeCategory === cat.value}
+                class:bg-gray-100={activeCategory !== cat.value}
+                class:text-gray-700={activeCategory !== cat.value}
+                class:hover:bg-gray-200={activeCategory !== cat.value}
+            >
+                {cat.label}
+            </button>
         {/each}
     </div>
+
+    {#if services.length === 0}
+        <p class="text-gray-500">No services found in this category.</p>
+    {:else}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {#each services as serv}
+                <div class="border rounded-lg p-4 hover:shadow transition">
+                    <div class="flex items-center gap-2 mb-1">
+                        <h2 class="font-semibold text-lg">{serv.name}</h2>
+                        <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                            {CATEGORIES.find(c => c.value === serv.category)?.label ?? serv.category}
+                        </span>
+                    </div>
+                    <p class="text-gray-500 text-sm">{serv.description}</p>
+                    <p class="text-gray-500 text-sm">{orgNames.get(serv.organizationId) ?? 'Unknown'}</p>
+                    <p class="text-gray-500 text-sm">Duration: {serv.durationMinutes} min · Price: {serv.price}</p>
+                    <button on:click={() => selectService(serv)}
+                            class="mt-3 bg-blue-600 text-white text-sm px-3 py-1 rounded">
+                        Book
+                    </button>
+                </div>
+            {/each}
+        </div>
+    {/if}
 {/if}

@@ -9,6 +9,10 @@ public interface ServiceRepository {
 
     List<Service> findAll();
 
+    List<Service> findByCategory(ServiceCategory category);
+
+    List<Service> findByOrganizationId(int organizationId);
+
     Service save(Service service);
 
     void delete(Service service);

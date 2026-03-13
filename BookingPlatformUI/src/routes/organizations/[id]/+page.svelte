@@ -4,7 +4,12 @@
     import {page} from '$app/stores';
     import {organizationsApi} from '$lib/api/organizations';
     import {servicesApi} from '$lib/api/services';
-    import type {OrganizationDTO, ServiceDTO, SpecialistDTO} from '$lib/types';
+    import type {OrganizationDTO, ServiceDTO, SpecialistDTO, ServiceCategoryType} from '$lib/types';
+
+    const CATEGORY_LABELS: Record<ServiceCategoryType, string> = {
+        MAKEUP: 'Makeup', NAILS: 'Nails', BARBER: 'Barber', MASSAGE: 'Massage',
+        TATTOO: 'Tattoo', HEALTH_AND_FITNESS: 'Health & Fitness', SKIN_CARE: 'Skin Care', OTHER: 'Other'
+    };
     import {get} from "svelte/store";
     import {currentUser} from "$lib/stores/auth";
     import {bookingsApi} from "$lib/api/bookings";

@@ -1,6 +1,7 @@
 package com.server.service.infrastructure;
 
 import com.server.service.domain.Service;
+import com.server.service.domain.ServiceCategory;
 import com.server.service.domain.ServiceRepository;
 import org.springframework.stereotype.Repository;
 
@@ -26,6 +27,16 @@ public class JpaServiceRepository implements ServiceRepository {
     @Override
     public List<Service> findAll() {
         return serviceJpaRepository.findAll().stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public List<Service> findByCategory(ServiceCategory category) {
+        return serviceJpaRepository.findByCategory(category).stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public List<Service> findByOrganizationId(int organizationId) {
+        return serviceJpaRepository.findByOrganizationId(organizationId).stream().map(mapper::toDomain).toList();
     }
 
     @Override
