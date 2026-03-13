@@ -1,5 +1,8 @@
 package com.server.organization.application;
 
+import com.server.booking.domain.Booking;
+import com.server.booking.domain.BookingRepository;
+import com.server.booking.domain.BookingStatus;
 import com.server.organization.api.UserDTO;
 import com.server.organization.domain.enums.GlobalRole;
 import com.server.organization.domain.users.*;
@@ -9,19 +12,24 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
 
     public UserService(UserRepository userRepository,
+                       BookingRepository bookingRepository,
                        PasswordEncoder passwordEncoder, UserMapper userMapper) {
 
         this.userRepository = userRepository;
+        this.bookingRepository = bookingRepository;
         this.passwordEncoder = passwordEncoder;
         this.userMapper = userMapper;
     }
@@ -91,6 +99,36 @@ public class UserService {
         User user = findUserById(id);
         user.changeRole(role);
         userRepository.save(user);
+    }
+
+    @Transactional
+    public void deactivateUser(int userId) {
+        User user = findUserById(userId);
+        user.deactivate();
+        userRepository.save(user);
+        cancelFutureBookings(userId);
+    }
+
+    @Transactional
+    public void reactivateUser(int userId) {
+        User user = findUserById(userId);
+        user.reactivate();
+        userRepository.save(user);
+    }
+
+    private void cancelFutureBookings(int userId) {
+        LocalDateTime now = LocalDateTime.now();
+
+        Stream.concat(
+                bookingRepository.getBookingsByClientId(userId).stream(),
+                bookingRepository.getBookingsBySpecialistId(userId).stream()
+        )
+                .filter(b -> b.getStatus() != BookingStatus.CANCELLED)
+                .filter(b -> b.getTimeSlot().start().isAfter(now))
+                .forEach(b -> {
+                    b.cancelBySpecialist();
+                    bookingRepository.save(b);
+                });
     }
 
     private User findUserById(int id) {

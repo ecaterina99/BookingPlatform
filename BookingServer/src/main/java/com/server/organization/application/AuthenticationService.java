@@ -1,6 +1,7 @@
 package com.server.organization.application;
 
 import com.server.organization.domain.users.User;
+import com.server.organization.domain.users.UserDeactivatedException;
 import com.server.organization.domain.users.UserEmail;
 import com.server.organization.domain.users.UserRepository;
 import com.server.shared.api.AuthRequest;
@@ -47,6 +48,10 @@ public class AuthenticationService {
 
         if (!passwordEncoder.matches(request.password(), user.getPassword().value())) {
             throw new BadCredentialsException("Invalid email or password");
+        }
+
+        if (!user.isActive()) {
+            throw new UserDeactivatedException("Your account has been deactivated. Please contact an administrator.");
         }
 
         String token = jwtService.generateToken(

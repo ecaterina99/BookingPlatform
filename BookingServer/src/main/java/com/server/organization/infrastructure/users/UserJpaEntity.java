@@ -1,5 +1,6 @@
 package com.server.organization.infrastructure.users;
 
+import com.server.organization.domain.enums.AccountStatus;
 import com.server.organization.domain.enums.GlobalRole;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -32,13 +33,18 @@ public class UserJpaEntity {
     @Column(name = "role")
     private GlobalRole globalRole;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "account_status", nullable = false, columnDefinition = "VARCHAR(255) DEFAULT 'ACTIVE'")
+    private AccountStatus accountStatus;
+
     public UserJpaEntity() {
     }
 
-    public UserJpaEntity(String email, String password, String fullName, GlobalRole globalRole) {
+    public UserJpaEntity(String email, String password, String fullName, GlobalRole globalRole, AccountStatus accountStatus) {
         this.email = email;
         this.password = password;
         this.fullName = fullName;
         this.globalRole = globalRole;
+        this.accountStatus = accountStatus;
     }
 }

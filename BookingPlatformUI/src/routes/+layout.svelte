@@ -5,7 +5,7 @@
 </script>
 
 <Navbar/>
-{#if $page.url.pathname.startsWith('/admin')}
+{#if $page.url.pathname.startsWith('/admin') || $page.url.pathname.startsWith('/global-admin')}
     <slot/>
 {:else}
     <main class="max-w-5xl mx-auto px-4 py-8">

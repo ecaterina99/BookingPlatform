@@ -21,6 +21,7 @@ import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -37,15 +38,18 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final DeactivatedUserFilter deactivatedUserFilter;
     private final String jwtSecret;
     private final List<String> allowedOrigins;
 
     public SecurityConfig(
             JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+            DeactivatedUserFilter deactivatedUserFilter,
             @Value("${jwt.secret}") String jwtSecret,
             @Value("${cors.allowed-origins}") List<String> allowedOrigins
     ) {
         this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+        this.deactivatedUserFilter = deactivatedUserFilter;
         this.jwtSecret = jwtSecret;
         this.allowedOrigins = allowedOrigins;
     }
@@ -89,6 +93,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/users/{id}").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/users/{id}").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/users/{id}").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/users/{id}/deactivate").hasRole("GLOBAL_ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/users/{id}/reactivate").hasRole("GLOBAL_ADMIN")
 
                         // Booking endpoints
                         .requestMatchers(HttpMethod.POST, "/api/bookings").authenticated()
@@ -115,7 +121,8 @@ public class SecurityConfig {
                                 .decoder(jwtDecoder())
                                 .jwtAuthenticationConverter(jwtAuthenticationConverter())
                         )
-                );
+                )
+                .addFilterAfter(deactivatedUserFilter, BearerTokenAuthenticationFilter.class);
 
         return http.build();
     }

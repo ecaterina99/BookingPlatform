@@ -1,6 +1,7 @@
 package com.server.organization.infrastructure.users;
 
 import com.server.organization.api.UserDTO;
+import com.server.organization.domain.enums.AccountStatus;
 import com.server.organization.domain.users.User;
 import com.server.organization.domain.users.UserEmail;
 import com.server.organization.domain.users.UserPassword;
@@ -14,7 +15,8 @@ public class UserMapper {
                 user.getId(),
                 user.getEmail().value(),
                 user.getFullName(),
-                user.getGlobalRole().name()
+                user.getGlobalRole().name(),
+                user.getAccountStatus().name()
         );
     }
 
@@ -23,19 +25,24 @@ public class UserMapper {
                 user.getEmail().value(),
                 user.getPassword().value(),
                 user.getFullName(),
-                user.getGlobalRole()
+                user.getGlobalRole(),
+                user.getAccountStatus()
         );
         entity.setId(user.getId());
         return entity;
     }
 
     public User toDomain(UserJpaEntity entity) {
+        AccountStatus status = entity.getAccountStatus() != null
+                ? entity.getAccountStatus()
+                : AccountStatus.ACTIVE;
         return new User(
                 entity.getId(),
                 new UserEmail(entity.getEmail()),
                 new UserPassword(entity.getPassword()),
                 entity.getFullName(),
-                entity.getGlobalRole()
+                entity.getGlobalRole(),
+                status
         );
     }
 }

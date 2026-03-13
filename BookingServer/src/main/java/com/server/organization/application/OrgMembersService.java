@@ -51,6 +51,14 @@ public class OrgMembersService {
     }
 
     @Transactional
+    public void changeMemberRole(int organizationId, int userId, Role newRole) {
+        OrganizationMember member = repository.findByOrganizationIdAndUserId(organizationId, userId)
+                .orElseThrow(() -> new EntityNotFoundException("Member not found in this organization"));
+        member.changeRole(newRole);
+        repository.save(member);
+    }
+
+    @Transactional
     public void deleteMember(int organizationId, int userId) {
         organizationRepository.findById(organizationId)
                 .orElseThrow(() -> new EntityNotFoundException("Organization not found"));

@@ -9,6 +9,7 @@ interface CreateBookingRequest {
 }
 
 export const bookingsApi = {
+    getAll: () => api.get<BookingDTO[]>('/api/bookings/'),
     getByClient: (clientId: number) => api.get<BookingDTO[]>(`/api/bookings/client/${clientId}`),
     getById: (id: number) => api.get<BookingDTO>(`/api/bookings/${id}`),
     create: (body: CreateBookingRequest) => api.post<number>('/api/bookings', body),

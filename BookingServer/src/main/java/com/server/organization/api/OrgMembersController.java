@@ -54,6 +54,17 @@ public class OrgMembersController {
         return orgMembersService.addMember(command);
     }
 
+    @PatchMapping("/{organizationId}/{userId}/role")
+    @Operation(summary = "Change a member's role within the organization (ORG_ADMIN only)")
+    @ApiResponse(responseCode = "200", description = "Member role updated successfully")
+    @PreAuthorize("@orgAccessEvaluator.isOrganizationAdmin(#organizationId) or hasRole('GLOBAL_ADMIN')")
+    public void changeMemberRole(
+            @PathVariable int organizationId,
+            @PathVariable int userId,
+            @RequestBody ChangeMemberRoleRequest request) {
+        orgMembersService.changeMemberRole(organizationId, userId, request.role());
+    }
+
     @DeleteMapping("/{organizationId}/{userId}")
     @Operation(summary = "Delete a member from the organization (ORG_ADMIN only)")
     @ApiResponse(responseCode = "204", description = "Member deleted from the organization successfully")

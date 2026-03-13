@@ -1,6 +1,7 @@
 package com.server.shared.api;
 
 import com.server.organization.domain.users.UserAlreadyExistsException;
+import com.server.organization.domain.users.UserDeactivatedException;
 import com.server.organization.domain.organizations.OrganizationAlreadyExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -60,6 +61,12 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handleOrganizationAlreadyExists(OrganizationAlreadyExistsException e) {
         return ApiError.of(HttpStatus.CONFLICT, "ORGANIZATION_ALREADY_EXISTS", e.getMessage());
+    }
+
+    @ExceptionHandler(UserDeactivatedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ApiError handleUserDeactivated(UserDeactivatedException e) {
+        return ApiError.of(HttpStatus.FORBIDDEN, "ACCOUNT_DEACTIVATED", e.getMessage());
     }
 
     @ExceptionHandler(BadCredentialsException.class)

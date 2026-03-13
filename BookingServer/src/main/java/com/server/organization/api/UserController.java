@@ -83,6 +83,24 @@ public class UserController {
         userService.deleteUser(id);
     }
 
+    @PatchMapping("/{id}/deactivate")
+    @Operation(summary = "Deactivate user (GLOBAL_ADMIN only)",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "User deactivated successfully")
+    @PreAuthorize("hasRole('GLOBAL_ADMIN')")
+    public void deactivateUser(@PathVariable int id) {
+        userService.deactivateUser(id);
+    }
+
+    @PatchMapping("/{id}/reactivate")
+    @Operation(summary = "Reactivate user (GLOBAL_ADMIN only)",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "User reactivated successfully")
+    @PreAuthorize("hasRole('GLOBAL_ADMIN')")
+    public void reactivateUser(@PathVariable int id) {
+        userService.reactivateUser(id);
+    }
+
     @PatchMapping("/{id}")
     @Operation(summary = "Partially update user",
             security = @SecurityRequirement(name = "bearerAuth"))

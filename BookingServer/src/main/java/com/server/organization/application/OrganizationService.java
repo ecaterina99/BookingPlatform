@@ -1,6 +1,7 @@
 package com.server.organization.application;
 
 import com.server.organization.api.OrganizationDTO;
+import com.server.organization.domain.organizationMembers.OrganizationMemberRepository;
 import com.server.organization.domain.organizations.*;
 import com.server.organization.infrastructure.organizations.OrganizationMapper;
 import jakarta.persistence.EntityNotFoundException;
@@ -14,10 +15,12 @@ public class OrganizationService {
 
     private final OrganizationRepository organizationRepository;
     private final OrganizationMapper organizationMapper;
+    private final OrganizationMemberRepository organizationMemberRepository;
 
-    public OrganizationService(OrganizationRepository organizationRepository, OrganizationMapper organizationMapper) {
+    public OrganizationService(OrganizationRepository organizationRepository, OrganizationMapper organizationMapper, OrganizationMemberRepository organizationMemberRepository) {
         this.organizationRepository = organizationRepository;
         this.organizationMapper = organizationMapper;
+        this.organizationMemberRepository = organizationMemberRepository;
     }
 
     @Transactional(readOnly = true)
@@ -59,6 +62,8 @@ public class OrganizationService {
     @Transactional
     public void deleteOrganizationById(int id) {
         Organization organization = findOrganizationById(id);
+        organizationMemberRepository.findByOrganizationId(id)
+                .forEach(organizationMemberRepository::delete);
         organizationRepository.delete(organization);
     }
 
