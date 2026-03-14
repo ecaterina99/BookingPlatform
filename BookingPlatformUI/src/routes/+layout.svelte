@@ -7,8 +7,10 @@
 <Navbar/>
 {#if $page.url.pathname.startsWith('/admin') || $page.url.pathname.startsWith('/global-admin')}
     <slot/>
+{:else if $page.url.pathname === '/login' || $page.url.pathname === '/register'}
+    <slot/>
 {:else}
-    <main class="max-w-5xl mx-auto px-4 py-8">
+    <main class="max-w-6xl mx-auto px-6 py-10">
         <slot/>
     </main>
 {/if}

@@ -75,6 +75,9 @@ public class BookingService {
 
     @Transactional
     public int createBooking(CreateBookingCommand command) {
+        if (command.clientId() == command.specialistId()) {
+            throw new IllegalArgumentException("A specialist cannot book their own service");
+        }
         validateEntitiesExist(command);
 
         com.server.service.domain.Service service = serviceRepository.findById(command.serviceId())

@@ -7,6 +7,7 @@
     import type {BookingDTO} from "$lib/types";
     import {requireAuth} from "$lib/guards";
     import {get} from 'svelte/store';
+    import {CalendarDays, Clock, User, X, Plus} from 'lucide-svelte';
 
     requireAuth();
 
@@ -56,42 +57,54 @@
         const [year, month, day] = datePart.split('-');
         return `${day}.${month}.${year} ${startTime.substring(0, 5)} – ${end.split('T')[1].substring(0, 5)}`;
     }
+
+    function statusColor(status: string): string {
+        if (status === 'PENDING') return 'bg-amber-50 text-amber-700 border-amber-200';
+        if (status === 'CONFIRMED') return 'bg-green-50 text-green-700 border-green-200';
+        return 'bg-red-50 text-red-600 border-red-200';
+    }
 </script>
 
-<div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold">My Bookings</h1>
-    <a href="/bookings/new" class="bg-blue-600 text-white px-4 py-2 rounded text-sm">+ New Booking</a>
+<div class="flex items-center justify-between mb-8">
+    <h1 class="text-2xl font-serif font-semibold text-brand-800">My Bookings</h1>
+    <a href="/bookings/new"
+       class="flex items-center gap-2 bg-brand-800 text-brand-100 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors">
+        <Plus size={16} /> New Booking
+    </a>
 </div>
 
 {#if cancelError}
-    <p class="text-red-600 text-sm mb-4">{cancelError}</p>
+    <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-5">{cancelError}</div>
 {/if}
 
 {#if loading}
-    <p class="text-gray-500">Loading...</p>
+    <p class="text-brand-400">Loading...</p>
 {:else if loadError}
-    <p class="text-red-600">{loadError}</p>
+    <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{loadError}</div>
 {:else if bookings.length === 0}
-    <p class="text-gray-500">You have no bookings yet.</p>
+    <div class="text-center py-16">
+        <CalendarDays size={48} class="mx-auto text-brand-300 mb-4" />
+        <p class="text-brand-500 mb-4">You have no bookings yet.</p>
+        <a href="/bookings/new" class="text-sm font-medium text-gold-500 hover:text-gold-600">Book your first service</a>
+    </div>
 {:else}
     <div class="flex flex-col gap-3">
         {#each bookings as booking}
-            <div class="border rounded-lg p-4 flex justify-between items-center">
-                <div class="flex flex-col gap-1">
-                    <p class="font-medium">{serviceNames.get(booking.serviceId) ?? `Service #${booking.serviceId}`}</p>
-                    <p class="text-sm text-gray-500">{specialistNames.get(booking.specialistId) ?? `Specialist #${booking.specialistId}`}</p>
-                    <p class="text-sm text-gray-500">{formatTime(booking.start, booking.end)}</p>
-                    <span class="text-xs font-semibold px-2 py-0.5 rounded w-fit"
-                          class:bg-yellow-100={booking.status === 'PENDING'}
-                          class:bg-green-100={booking.status === 'CONFIRMED'}
-                          class:bg-red-100={booking.status === 'CANCELLED'}>
+            <div class="bg-white border border-brand-200 rounded-xl p-5 flex justify-between items-center hover:border-brand-300 transition-colors">
+                <div class="flex flex-col gap-1.5">
+                    <p class="font-semibold text-brand-800">{serviceNames.get(booking.serviceId) ?? `Service #${booking.serviceId}`}</p>
+                    <div class="flex items-center gap-4 text-sm text-brand-500">
+                        <span class="flex items-center gap-1.5"><User size={14} /> {specialistNames.get(booking.specialistId) ?? `Specialist #${booking.specialistId}`}</span>
+                        <span class="flex items-center gap-1.5"><Clock size={14} /> {formatTime(booking.start, booking.end)}</span>
+                    </div>
+                    <span class="text-xs font-medium px-2.5 py-1 rounded-full border w-fit mt-1 {statusColor(booking.status)}">
                         {booking.status}
                     </span>
                 </div>
                 {#if booking.status !== 'CANCELLED'}
                     <button on:click={() => cancel(booking.id)}
-                            class="text-sm text-red-600 hover:underline shrink-0">
-                        Cancel
+                            class="flex items-center gap-1.5 text-sm text-red-500 hover:text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors shrink-0">
+                        <X size={14} /> Cancel
                     </button>
                 {/if}
             </div>

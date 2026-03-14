@@ -4,6 +4,7 @@
     import {auth} from '$lib/stores/auth';
     import {ApiError} from '$lib/api/client';
     import {organizationsApi} from "$lib/api/organizations";
+    import {Mail, Lock, User, ArrowRight} from 'lucide-svelte';
 
     let fullName = '';
     let email = '';
@@ -18,7 +19,7 @@
         loading = true;
         try {
             const res = await authApi.register(email, password, fullName);
-            auth.login(res.token, {id: 0, email: '', fullName: '', globalRole: 'USER'},[]);
+            auth.login(res.token, {id: 0, email: '', fullName: '', globalRole: 'USER', accountStatus: 'ACTIVE'},[]);
             const [user, memberships] = await Promise.all([
                 authApi.getCurrent(),
                 organizationsApi.getMembership()
@@ -38,43 +39,75 @@
     }
 </script>
 
-<div class="min-h-screen flex items-center justify-center">
-    <form on:submit|preventDefault={handleSubmit} class="flex flex-col gap-4 w-80">
-        <h1 class="text-2xl font-bold">Create account</h1>
-
-        {#if error}
-            <p class="text-red-600 text-sm">{error}</p>
-        {/if}
-
-        <div class="flex flex-col gap-1">
-            <input bind:value={fullName} type="text" placeholder="Full name"
-                   class="border rounded px-3 py-2" required/>
-            {#if fieldErrors.fullName}
-                <p class="text-red-500 text-xs">{fieldErrors.fullName}</p>
-            {/if}
+<div class="min-h-screen flex items-center justify-center bg-brand-50 px-4">
+    <div class="w-full max-w-sm">
+        <div class="text-center mb-8">
+            <a href="/dashboard" class="inline-block">
+                <span class="font-serif text-3xl font-bold tracking-wide text-brand-800">TIME</span>
+            </a>
+            <p class="text-brand-400 text-xs uppercase tracking-[0.2em] mt-1">Booking & Scheduling</p>
         </div>
 
-        <div class="flex flex-col gap-1">
-            <input bind:value={email} type="email" placeholder="Email"
-                   class="border rounded px-3 py-2" required/>
-            {#if fieldErrors.email}
-                <p class="text-red-500 text-xs">{fieldErrors.email}</p>
+        <div class="bg-white rounded-xl border border-brand-200 shadow-sm p-8">
+            <h1 class="text-xl font-serif font-semibold text-brand-800 mb-6">Create account</h1>
+
+            {#if error}
+                <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-5">
+                    {error}
+                </div>
             {/if}
+
+            <form on:submit|preventDefault={handleSubmit} class="flex flex-col gap-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-medium text-brand-700">Full name</label>
+                    <div class="relative">
+                        <div class="absolute left-3 top-1/2 -translate-y-1/2 text-brand-400"><User size={16} /></div>
+                        <input bind:value={fullName} type="text" placeholder="Your full name"
+                               class="w-full border border-brand-200 rounded-lg pl-10 pr-4 py-2.5 text-sm bg-brand-50/50 focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition" required/>
+                    </div>
+                    {#if fieldErrors.fullName}
+                        <p class="text-red-500 text-xs">{fieldErrors.fullName}</p>
+                    {/if}
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-medium text-brand-700">Email</label>
+                    <div class="relative">
+                        <div class="absolute left-3 top-1/2 -translate-y-1/2 text-brand-400"><Mail size={16} /></div>
+                        <input bind:value={email} type="email" placeholder="your@email.com"
+                               class="w-full border border-brand-200 rounded-lg pl-10 pr-4 py-2.5 text-sm bg-brand-50/50 focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition" required/>
+                    </div>
+                    {#if fieldErrors.email}
+                        <p class="text-red-500 text-xs">{fieldErrors.email}</p>
+                    {/if}
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-medium text-brand-700">Password</label>
+                    <div class="relative">
+                        <div class="absolute left-3 top-1/2 -translate-y-1/2 text-brand-400"><Lock size={16} /></div>
+                        <input bind:value={password} type="password" placeholder="Min. 6 characters"
+                               class="w-full border border-brand-200 rounded-lg pl-10 pr-4 py-2.5 text-sm bg-brand-50/50 focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition" required minlength="6"/>
+                    </div>
+                    {#if fieldErrors.password}
+                        <p class="text-red-500 text-xs">{fieldErrors.password}</p>
+                    {/if}
+                </div>
+
+                <button type="submit" disabled={loading}
+                        class="flex items-center justify-center gap-2 bg-brand-800 text-brand-100 rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-brand-700 disabled:opacity-50 transition-colors mt-2">
+                    {#if loading}
+                        Creating account...
+                    {:else}
+                        Create account <ArrowRight size={16} />
+                    {/if}
+                </button>
+            </form>
         </div>
 
-        <div class="flex flex-col gap-1">
-            <input bind:value={password} type="password" placeholder="Password (min. 6 characters)"
-                   class="border rounded px-3 py-2" required minlength="6"/>
-            {#if fieldErrors.password}
-                <p class="text-red-500 text-xs">{fieldErrors.password}</p>
-            {/if}
-        </div>
-
-        <button type="submit" disabled={loading}
-                class="bg-blue-600 text-white rounded px-4 py-2 disabled:opacity-50">
-            {loading ? 'Creating account...' : 'Register'}
-        </button>
-
-        <a href="/login" class="text-sm text-center text-blue-600">Already have an account? Login</a>
-    </form>
+        <p class="text-center mt-5 text-sm text-brand-500">
+            Already have an account?
+            <a href="/login" class="font-medium text-gold-500 hover:text-gold-600 transition-colors">Sign in</a>
+        </p>
+    </div>
 </div>

@@ -9,7 +9,8 @@
     import {requireAuth} from '$lib/guards';
     import {ApiError} from '$lib/api/client';
     import {get} from 'svelte/store';
-    import type {ServiceDTO, SpecialistDTO, ScheduleDTO, DayOfWeek, ServiceCategoryType} from '$lib/types';
+    import type {ServiceDTO, SpecialistDTO, ScheduleDTO, DayOfWeek, ServiceCategoryType, OrganizationDTO} from '$lib/types';
+    import {ArrowLeft, ChevronLeft, ChevronRight, Clock, Sparkles, Check, MapPin} from 'lucide-svelte';
 
     requireAuth();
 
@@ -20,31 +21,31 @@
         { value: 'BARBER', label: 'Barber' },
         { value: 'MASSAGE', label: 'Massage' },
         { value: 'TATTOO', label: 'Tattoo' },
+        { value: 'HAIR', label: 'Hair' },
         { value: 'HEALTH_AND_FITNESS', label: 'Health & Fitness' },
         { value: 'SKIN_CARE', label: 'Skin Care' },
         { value: 'OTHER', label: 'Other' },
     ];
 
-    // ── Services list ─────────────────────────────────────────────
-    let services: ServiceDTO[] = [];
     let allServices: ServiceDTO[] = [];
+    let allOrgs: OrganizationDTO[] = [];
     let orgNames = new Map<number, string>();
+    let orgCities = new Map<number, string>();
     let loading = true;
     let selectedService: ServiceDTO | null = null;
     let activeCategory: ServiceCategoryType | 'ALL' = 'ALL';
+    let activeCity: string = 'ALL';
     let specialists: SpecialistDTO[] = [];
 
-    // ── Booking form ──────────────────────────────────────────────
     let specialistId: number | null = null;
     let schedule: ScheduleDTO | null = null;
     let scheduleLoading = false;
     let submitting = false;
     let error = '';
 
-    // ── Calendar state ────────────────────────────────────────────
     let weekOffset = 0;
-    let selectedDate = '';   // 'YYYY-MM-DD'
-    let selectedTime = '';   // 'HH:mm'
+    let selectedDate = '';
+    let selectedTime = '';
 
     const SHORT_DAY = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -55,7 +56,6 @@
 
     const todayStr = new Date().toISOString().substring(0, 10);
 
-    // Returns the 7 dates (Mon–Sun) for the given week offset
     function getWeekDays(offset: number): Date[] {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -69,18 +69,14 @@
         });
     }
 
-    function toDateStr(d: Date): string {
-        return d.toISOString().substring(0, 10);
-    }
+    function toDateStr(d: Date): string { return d.toISOString().substring(0, 10); }
 
     function weekLabel(days: Date[]): string {
         const fmt = (d: Date) => d.toLocaleDateString('en-GB', {day: 'numeric', month: 'short'});
         return `${fmt(days[0])} – ${fmt(days[6])}`;
     }
 
-    function toHHMM(t: string): string {
-        return t.substring(0, 5);
-    }
+    function toHHMM(t: string): string { return t.substring(0, 5); }
 
     function workingHoursForDate(s: ScheduleDTO, dateStr: string): {start: string; end: string} | null {
         const jsDay = new Date(dateStr + 'T00:00:00').getDay();
@@ -108,23 +104,23 @@
         : [];
     $: startDateTime = selectedDate && selectedTime ? `${selectedDate}T${selectedTime}` : '';
 
-    function filterByCategory(cat: ServiceCategoryType | 'ALL') {
-        activeCategory = cat;
-        if (cat === 'ALL') {
-            services = allServices;
-        } else {
-            services = allServices.filter(s => s.category === cat);
-        }
-    }
+    $: cities = [...new Set(allOrgs.map(o => o.city))].sort();
+
+    $: services = allServices.filter(s => {
+        const matchesCategory = activeCategory === 'ALL' || s.category === activeCategory;
+        const matchesCity = activeCity === 'ALL' || orgCities.get(s.organizationId) === activeCity;
+        return matchesCategory && matchesCity;
+    });
 
     onMount(async () => {
-        const [fetchedServices, allOrgs] = await Promise.all([
+        const [fetchedServices, fetchedOrgs] = await Promise.all([
             servicesApi.getAll(),
             organizationsApi.getAll()
         ]);
         allServices = fetchedServices;
-        services = fetchedServices;
-        orgNames = new Map(allOrgs.map(o => [o.id, o.name]));
+        allOrgs = fetchedOrgs;
+        orgNames = new Map(fetchedOrgs.map(o => [o.id, o.name]));
+        orgCities = new Map(fetchedOrgs.map(o => [o.id, o.city]));
         loading = false;
     });
 
@@ -134,7 +130,9 @@
         schedule = null;
         selectedDate = '';
         selectedTime = '';
-        specialists = await organizationsApi.getSpecialists(service.organizationId);
+        const allSpecialists = await organizationsApi.getSpecialists(service.organizationId);
+        const user = get(currentUser);
+        specialists = user ? allSpecialists.filter(s => s.userId !== user.id) : allSpecialists;
         error = '';
     }
 
@@ -145,13 +143,9 @@
         weekOffset = 0;
         if (!specialistId) return;
         scheduleLoading = true;
-        try {
-            schedule = await scheduleApi.getBySpecialist(specialistId);
-        } catch {
-            schedule = null;
-        } finally {
-            scheduleLoading = false;
-        }
+        try { schedule = await scheduleApi.getBySpecialist(specialistId); }
+        catch { schedule = null; }
+        finally { scheduleLoading = false; }
     }
 
     function selectDay(dateStr: string) {
@@ -183,24 +177,33 @@
     }
 </script>
 
-<h1 class="text-3xl font-bold mb-6">Book a service</h1>
-
 {#if loading}
-    <p>Loading...</p>
+    <h1 class="text-2xl font-serif font-semibold text-brand-800 mb-8">Book a Service</h1>
+    <p class="text-brand-400">Loading services...</p>
 {:else if selectedService}
     <div class="max-w-lg">
         <button on:click={() => { selectedService = null; schedule = null; selectedDate = ''; selectedTime = ''; }}
-                class="text-sm text-gray-500 hover:underline mb-4">← Back to services</button>
+                class="flex items-center gap-1.5 text-sm text-brand-500 hover:text-brand-700 mb-6 transition-colors">
+            <ArrowLeft size={16} /> Back to services
+        </button>
 
-        <h2 class="text-xl font-semibold mb-1">{selectedService.name}</h2>
-        <p class="text-sm text-gray-500 mb-4">{selectedService.durationMinutes} min · {selectedService.price} RON</p>
+        <div class="bg-white border border-brand-200 rounded-xl p-6 mb-6">
+            <h2 class="text-lg font-serif font-semibold text-brand-800">{selectedService.name}</h2>
+            <p class="text-sm text-brand-500 mt-1 flex items-center gap-3">
+                <span class="flex items-center gap-1"><Clock size={14} /> {selectedService.durationMinutes} min</span>
+                <span>{selectedService.price} RON</span>
+            </p>
+        </div>
 
-        {#if error}<p class="text-red-600 text-sm mb-4">{error}</p>{/if}
+        {#if error}
+            <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-5">{error}</div>
+        {/if}
 
         <!-- Specialist selector -->
-        <div class="flex flex-col gap-1 mb-6">
-            <label class="text-sm font-medium">Specialist</label>
-            <select bind:value={specialistId} on:change={onSpecialistChange} class="border rounded px-3 py-2">
+        <div class="flex flex-col gap-1.5 mb-6">
+            <label class="text-sm font-medium text-brand-700">Specialist</label>
+            <select bind:value={specialistId} on:change={onSpecialistChange}
+                    class="border border-brand-200 rounded-lg px-4 py-2.5 text-sm bg-white focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition">
                 <option value={null} disabled>Select a specialist</option>
                 {#each specialists as s}
                     <option value={s.userId}>{s.fullName}</option>
@@ -208,87 +211,82 @@
             </select>
         </div>
 
-        <!-- Calendar (only shown once specialist is chosen) -->
         {#if specialistId}
             {#if scheduleLoading}
-                <p class="text-gray-400 text-sm">Loading schedule...</p>
+                <p class="text-brand-400 text-sm">Loading schedule...</p>
             {:else}
                 <!-- Week navigation -->
-                <div class="flex items-center justify-between mb-3">
-                    <button
-                        on:click={() => weekOffset--}
-                        disabled={weekOffset === 0}
-                        class="text-sm text-blue-600 disabled:text-gray-300 disabled:cursor-default"
-                    >← Prev</button>
-                    <span class="text-sm font-medium">{weekLabel(weekDays)}</span>
-                    <button on:click={() => weekOffset++} class="text-sm text-blue-600">Next →</button>
+                <div class="flex items-center justify-between mb-4">
+                    <button on:click={() => weekOffset--} disabled={weekOffset === 0}
+                            class="p-2 rounded-lg text-brand-500 hover:bg-brand-100 disabled:opacity-30 disabled:cursor-default transition">
+                        <ChevronLeft size={18} />
+                    </button>
+                    <span class="text-sm font-medium text-brand-700">{weekLabel(weekDays)}</span>
+                    <button on:click={() => weekOffset++}
+                            class="p-2 rounded-lg text-brand-500 hover:bg-brand-100 transition">
+                        <ChevronRight size={18} />
+                    </button>
                 </div>
 
                 <!-- Day columns -->
-                <div class="grid grid-cols-7 gap-1 mb-4">
+                <div class="grid grid-cols-7 gap-1 mb-5">
                     {#each weekDays as day, i}
                         {@const dateStr = toDateStr(day)}
                         {@const isPast = dateStr < todayStr}
                         {@const isToday = dateStr === todayStr}
                         {@const isSelected = dateStr === selectedDate}
                         {@const isWorking = !!schedule && !!workingHoursForDate(schedule, dateStr)}
-                        <button
-                            type="button"
-                            on:click={() => selectDay(dateStr)}
-                            disabled={isPast}
-                            class="flex flex-col items-center py-2 rounded-lg text-sm transition"
+                        <button type="button" on:click={() => selectDay(dateStr)} disabled={isPast}
+                            class="flex flex-col items-center py-2.5 rounded-xl text-sm transition-all"
                             class:opacity-30={isPast}
                             class:cursor-default={isPast}
-                            class:text-gray-400={!isWorking && !isPast}
-                            class:text-gray-800={isWorking && !isSelected}
-                            class:bg-blue-600={isSelected}
+                            class:text-brand-300={!isWorking && !isPast}
+                            class:text-brand-700={isWorking && !isSelected}
+                            class:bg-brand-800={isSelected}
                             class:text-white={isSelected}
-                            class:hover:bg-gray-100={!isSelected && !isPast}
+                            class:hover:bg-brand-100={!isSelected && !isPast}
                         >
                             <span class="text-xs mb-1">{SHORT_DAY[i]}</span>
                             <span class="w-8 h-8 flex items-center justify-center rounded-full font-semibold text-sm"
                                   class:border-2={isToday && !isSelected}
-                                  class:border-blue-600={isToday && !isSelected}
-                                  class:text-blue-600={isToday && !isSelected}
+                                  class:border-gold-400={isToday && !isSelected}
+                                  class:text-gold-500={isToday && !isSelected}
                             >{day.getDate()}</span>
                         </button>
                     {/each}
                 </div>
 
-                <!-- Slots or unavailable message -->
                 {#if selectedDate}
                     {#if !schedule || schedule.workingDays.length === 0}
-                        <p class="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+                        <div class="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
                             This specialist has no schedule set.
-                        </p>
+                        </div>
                     {:else if !selectedHours}
-                        <p class="text-sm text-gray-500 bg-gray-50 border rounded px-3 py-2">
+                        <div class="text-sm text-brand-500 bg-brand-100 border border-brand-200 rounded-lg px-4 py-3">
                             Specialist not available on this day.
-                        </p>
+                        </div>
                     {:else if timeSlots.length === 0}
-                        <p class="text-sm text-gray-500 bg-gray-50 border rounded px-3 py-2">
+                        <div class="text-sm text-brand-500 bg-brand-100 border border-brand-200 rounded-lg px-4 py-3">
                             No available slots for this day.
-                        </p>
+                        </div>
                     {:else}
-                        <p class="text-sm font-medium mb-2">
-                            Available slots ·
-                            <span class="text-blue-600">
+                        <p class="text-sm font-medium text-brand-700 mb-3">
+                            Available slots &middot;
+                            <span class="text-gold-500">
                                 {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-GB', {day: 'numeric', month: 'short'})}
                             </span>
                         </p>
-                        <div class="flex flex-col border rounded-lg overflow-hidden mb-4">
+                        <div class="flex flex-col border border-brand-200 rounded-xl overflow-hidden mb-5">
                             {#each timeSlots as slot}
-                                <button
-                                    type="button"
-                                    on:click={() => selectedTime = slot}
-                                    class="flex items-center justify-between px-4 py-3 text-sm border-b last:border-0 transition"
-                                    class:bg-blue-600={selectedTime === slot}
+                                <button type="button" on:click={() => selectedTime = slot}
+                                    class="flex items-center justify-between px-4 py-3.5 text-sm border-b border-brand-100 last:border-0 transition-all"
+                                    class:bg-brand-800={selectedTime === slot}
                                     class:text-white={selectedTime === slot}
-                                    class:hover:bg-gray-50={selectedTime !== slot}
+                                    class:hover:bg-brand-50={selectedTime !== slot}
                                 >
                                     <span class="font-semibold">{slot}</span>
-                                    <span class:text-blue-200={selectedTime === slot} class:text-gray-400={selectedTime !== slot}>
-                                        {selectedService.durationMinutes} min →
+                                    <span class="text-sm {selectedTime === slot ? 'text-brand-300' : 'text-brand-400'}">
+                                        {selectedService.durationMinutes} min
                                     </span>
                                 </button>
                             {/each}
@@ -298,7 +296,8 @@
 
                 {#if startDateTime}
                     <button on:click={create} disabled={submitting}
-                            class="w-full bg-blue-600 text-white rounded-lg px-4 py-3 font-medium disabled:opacity-50">
+                            class="w-full flex items-center justify-center gap-2 bg-gold-500 text-white rounded-xl px-4 py-3.5 font-medium hover:bg-gold-600 disabled:opacity-50 transition-colors">
+                        <Check size={18} />
                         {submitting ? 'Booking...' : 'Confirm booking'}
                     </button>
                 {/if}
@@ -306,40 +305,52 @@
         {/if}
     </div>
 {:else}
-    <!-- Category filter tabs -->
-    <div class="flex flex-wrap gap-2 mb-6">
-        {#each CATEGORIES as cat}
-            <button
-                on:click={() => filterByCategory(cat.value)}
-                class="px-4 py-2 rounded-full text-sm font-medium transition"
-                class:bg-blue-600={activeCategory === cat.value}
-                class:text-white={activeCategory === cat.value}
-                class:bg-gray-100={activeCategory !== cat.value}
-                class:text-gray-700={activeCategory !== cat.value}
-                class:hover:bg-gray-200={activeCategory !== cat.value}
-            >
-                {cat.label}
-            </button>
-        {/each}
+    <!-- Title + Filters -->
+    <div class="flex items-center gap-4 mb-8">
+        <h1 class="text-2xl font-serif font-semibold text-brand-800 mr-auto">Book a Service</h1>
+        <select bind:value={activeCategory}
+                class="border border-brand-200 rounded-lg px-4 py-2.5 text-sm bg-white focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition">
+            {#each CATEGORIES as cat}
+                <option value={cat.value}>{cat.label}</option>
+            {/each}
+        </select>
+        <select bind:value={activeCity}
+                class="border border-brand-200 rounded-lg px-4 py-2.5 text-sm bg-white focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition">
+            <option value="ALL">All cities</option>
+            {#each cities as city}
+                <option value={city}>{city}</option>
+            {/each}
+        </select>
     </div>
 
     {#if services.length === 0}
-        <p class="text-gray-500">No services found in this category.</p>
+        <div class="text-center py-12">
+            <Sparkles size={40} class="mx-auto text-brand-300 mb-3" />
+            <p class="text-brand-500">No services found in this category.</p>
+        </div>
     {:else}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             {#each services as serv}
-                <div class="border rounded-lg p-4 hover:shadow transition">
-                    <div class="flex items-center gap-2 mb-1">
-                        <h2 class="font-semibold text-lg">{serv.name}</h2>
-                        <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                <div class="bg-white border border-brand-200 rounded-xl p-5 hover:border-gold-400 hover:shadow-sm transition-all group">
+                    <div class="flex items-center gap-2 mb-2">
+                        <h2 class="font-semibold text-brand-800">{serv.name}</h2>
+                        <span class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-brand-100 text-brand-600">
                             {CATEGORIES.find(c => c.value === serv.category)?.label ?? serv.category}
                         </span>
                     </div>
-                    <p class="text-gray-500 text-sm">{serv.description}</p>
-                    <p class="text-gray-500 text-sm">{orgNames.get(serv.organizationId) ?? 'Unknown'}</p>
-                    <p class="text-gray-500 text-sm">Duration: {serv.durationMinutes} min · Price: {serv.price}</p>
+                    <p class="text-brand-500 text-sm mb-1">{serv.description}</p>
+                    <p class="text-brand-400 text-sm mb-1 flex items-center gap-1.5">
+                        {orgNames.get(serv.organizationId) ?? 'Unknown'}
+                        {#if orgCities.get(serv.organizationId)}
+                            <span class="flex items-center gap-0.5"><MapPin size={12} /> {orgCities.get(serv.organizationId)}</span>
+                        {/if}
+                    </p>
+                    <p class="text-sm text-brand-500 flex items-center gap-3 mb-3">
+                        <span class="flex items-center gap-1"><Clock size={14} /> {serv.durationMinutes} min</span>
+                        <span>{serv.price} RON</span>
+                    </p>
                     <button on:click={() => selectService(serv)}
-                            class="mt-3 bg-blue-600 text-white text-sm px-3 py-1 rounded">
+                            class="bg-brand-800 text-brand-100 text-sm px-4 py-2 rounded-lg font-medium hover:bg-brand-700 transition-colors">
                         Book
                     </button>
                 </div>
