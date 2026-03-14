@@ -1,5 +1,6 @@
 <script lang="ts">
     import {onMount} from "svelte";
+    import {page} from '$app/stores';
     import {organizationsApi} from "$lib/api/organizations";
     import type {OrganizationDTO} from "$lib/types";
     import {MapPin, ArrowRight, Search} from 'lucide-svelte';
@@ -10,6 +11,8 @@
     let activeCity: string = 'ALL';
 
     onMount(async () => {
+        const cityParam = $page.url.searchParams.get('city');
+        if (cityParam) activeCity = cityParam;
         allOrganizations = await organizationsApi.getAll();
         loading = false;
     });

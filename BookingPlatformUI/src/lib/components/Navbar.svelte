@@ -21,8 +21,8 @@
         <div class="flex items-center justify-between h-16">
             <!-- Logo -->
             <a href="/dashboard" class="flex items-center gap-2 group">
-                <span class="font-serif text-2xl font-bold tracking-wide text-brand-800 group-hover:text-gold-500 transition-colors">TIME</span>
-                <span class="hidden sm:block text-[10px] uppercase tracking-[0.2em] text-brand-400 font-medium leading-tight mt-1">Booking &<br/>Scheduling</span>
+                <span class="font-serif text-[28px] font-bold tracking-wide text-brand-800 group-hover:text-gold-500 transition-colors mt-[1px]">TIME</span>
+                <span class="hidden sm:block text-[10px] uppercase tracking-[0.2em] text-brand-400 font-medium leading-tight">Booking &<br/>Scheduling</span>
             </a>
 
             <!-- Desktop nav -->
