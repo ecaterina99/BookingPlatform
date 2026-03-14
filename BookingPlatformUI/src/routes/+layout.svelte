@@ -7,17 +7,23 @@
     $: isAdminPage = $page.url.pathname.startsWith('/admin') || $page.url.pathname.startsWith('/global-admin');
 </script>
 
-<Navbar/>
-{#if isAdminPage}
-    <slot/>
-{:else if $page.url.pathname === '/login' || $page.url.pathname === '/register' || $page.url.pathname === '/dashboard' || $page.url.pathname === '/'}
-    <slot/>
-{:else}
-    <main class="max-w-6xl mx-auto px-6 py-10">
-        <slot/>
-    </main>
-{/if}
+<div class="flex flex-col min-h-screen">
+    <Navbar/>
+    {#if isAdminPage}
+        <div class="flex-1">
+            <slot/>
+        </div>
+    {:else if $page.url.pathname === '/login' || $page.url.pathname === '/register' || $page.url.pathname === '/dashboard' || $page.url.pathname === '/'}
+        <div class="flex-1">
+            <slot/>
+        </div>
+    {:else}
+        <main class="flex-1 max-w-6xl mx-auto px-6 py-10 w-full">
+            <slot/>
+        </main>
+    {/if}
 
-{#if !isAdminPage}
-    <Footer />
-{/if}
+    {#if !isAdminPage}
+        <Footer />
+    {/if}
+</div>

@@ -8,6 +8,10 @@
     import {requireAuth} from "$lib/guards";
     import {get} from 'svelte/store';
     import {CalendarDays, Clock, User, X, Plus} from 'lucide-svelte';
+    import ConfirmModal from '$lib/components/ConfirmModal.svelte';
+
+    let modalOpen = false;
+    let modalAction: (() => void) | null = null;
 
     requireAuth();
 
@@ -41,15 +45,17 @@
         }
     });
 
-    async function cancel(id: number) {
-        if (!confirm('Cancel this booking?')) return;
-        cancelError = '';
-        try {
-            await bookingsApi.cancelAsClient(id);
-            bookings = bookings.map(b => b.id === id ? {...b, status: 'CANCELLED'} : b);
-        } catch (e: any) {
-            cancelError = e.message;
-        }
+    function cancel(id: number) {
+        modalAction = async () => {
+            cancelError = '';
+            try {
+                await bookingsApi.cancelAsClient(id);
+                bookings = bookings.map(b => b.id === id ? {...b, status: 'CANCELLED'} : b);
+            } catch (e: any) {
+                cancelError = e.message;
+            }
+        };
+        modalOpen = true;
     }
 
     function formatTime(start: string, end: string): string {
@@ -64,6 +70,8 @@
         return 'bg-red-50 text-red-600 border-red-200';
     }
 </script>
+
+<ConfirmModal bind:open={modalOpen} title="Cancel Booking" message="Are you sure you want to cancel this booking?" confirmText="Cancel Booking" variant="danger" on:confirm={() => modalAction?.()} />
 
 <div class="flex items-center justify-between mb-8">
     <h1 class="text-2xl font-serif font-semibold text-brand-800">My Bookings</h1>

@@ -8,6 +8,10 @@
     import {requireAuth} from '$lib/guards';
     import {get} from 'svelte/store';
     import {CalendarDays, Clock, Check, X, Save} from 'lucide-svelte';
+    import ConfirmModal from '$lib/components/ConfirmModal.svelte';
+
+    let modalOpen = false;
+    let modalAction: (() => void) | null = null;
 
     requireAuth();
 
@@ -74,13 +78,15 @@
         finally { scheduleSaving = false; }
     }
 
-    async function cancelBooking(id: number) {
-        if (!confirm('Cancel this booking?')) return;
-        cancelError = '';
-        try {
-            await bookingsApi.cancelAsSpecialist(id);
-            bookings = bookings.map(b => b.id === id ? {...b, status: 'CANCELLED'} : b);
-        } catch (e: any) { cancelError = e.message ?? 'Failed to cancel booking.'; }
+    function cancelBooking(id: number) {
+        modalAction = async () => {
+            cancelError = '';
+            try {
+                await bookingsApi.cancelAsSpecialist(id);
+                bookings = bookings.map(b => b.id === id ? {...b, status: 'CANCELLED'} : b);
+            } catch (e: any) { cancelError = e.message ?? 'Failed to cancel booking.'; }
+        };
+        modalOpen = true;
     }
 
     async function confirmBooking(id: number) {
@@ -105,6 +111,8 @@
 
     $: filteredBookings = filterStatus === 'all' ? bookings : bookings.filter(b => b.status === filterStatus);
 </script>
+
+<ConfirmModal bind:open={modalOpen} title="Cancel Booking" message="Are you sure you want to cancel this booking?" confirmText="Cancel Booking" variant="danger" on:confirm={() => modalAction?.()} />
 
 <!-- Tab bar -->
 <div class="flex gap-1 mb-8 border-b border-brand-200">
