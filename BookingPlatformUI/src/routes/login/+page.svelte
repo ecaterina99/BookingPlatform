@@ -11,6 +11,18 @@
     let error = '';
     let loading = false;
 
+    const testAccounts = [
+        { label: 'User', email: 'user@test.com', password: 'test123' },
+        { label: 'Specialist', email: 'specialist@test.com', password: 'test123' },
+        { label: 'Org Admin', email: 'admin@test.com', password: 'test123' },
+        { label: 'Global Admin', email: 'globaladmin@test.com', password: 'test123' },
+    ];
+
+    function fillCredentials(account: typeof testAccounts[0]) {
+        email = account.email;
+        password = account.password;
+    }
+
     async function handleSubmit() {
         error = '';
         loading = true;
@@ -85,5 +97,20 @@
             Don't have an account?
             <a href="/register" class="font-medium text-gold-500 hover:text-gold-600 transition-colors">Create one</a>
         </p>
+
+        <!-- Test accounts -->
+        <div class="mt-6 bg-white rounded-xl border border-brand-200 shadow-sm p-5">
+            <p class="text-xs font-medium text-brand-500 uppercase tracking-wide mb-3">Test Accounts</p>
+            <div class="grid grid-cols-2 gap-2">
+                {#each testAccounts as account}
+                    <button on:click={() => fillCredentials(account)}
+                            class="text-left border border-brand-100 rounded-lg px-3 py-2.5 hover:border-gold-400 hover:bg-gold-50/50 transition-all">
+                        <span class="block text-xs font-semibold text-brand-700">{account.label}</span>
+                        <span class="block text-[11px] text-brand-400 mt-0.5">{account.email}</span>
+                    </button>
+                {/each}
+            </div>
+            <p class="text-[11px] text-brand-300 mt-2.5 text-center">Click to fill credentials. Password: <span class="font-mono">test123</span></p>
+        </div>
     </div>
 </div>
