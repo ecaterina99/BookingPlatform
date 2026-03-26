@@ -1,10 +1,12 @@
 package com.server.booking.infrastructure.kafka;
 
 import com.server.booking.events.BookingCreatedEvent;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
+@ConditionalOnProperty(name = "kafka.enabled", havingValue = "true")
 public class BookingEventProducer {
 
     private static final String TOPIC = "booking.created";

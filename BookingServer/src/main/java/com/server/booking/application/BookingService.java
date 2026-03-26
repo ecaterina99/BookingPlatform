@@ -38,7 +38,7 @@ public class BookingService {
             ServiceRepository serviceRepository,
             BookingMapper bookingMapper,
             ScheduleRepository scheduleRepository,
-            BookingEventProducer bookingEventProducer
+            @org.springframework.beans.factory.annotation.Autowired(required = false) BookingEventProducer bookingEventProducer
     ) {
         this.bookingRepository = bookingRepository;
         this.userRepository = userRepository;
@@ -111,19 +111,21 @@ public class BookingService {
         );
         bookingRepository.save(booking);
 
-        bookingEventProducer.sendBookingCreated(
-                new BookingCreatedEvent(
-                        booking.getId(),
-                        booking.getClientId(),
-                        booking.getSpecialistId(),
-                        booking.getServiceId(),
-                        new TimeSlotEvent(
-                                booking.getTimeSlot().start(),
-                                booking.getTimeSlot().end()
-                        ),
-                        booking.getCreatedAt()
-                )
-        );
+        if (bookingEventProducer != null) {
+            bookingEventProducer.sendBookingCreated(
+                    new BookingCreatedEvent(
+                            booking.getId(),
+                            booking.getClientId(),
+                            booking.getSpecialistId(),
+                            booking.getServiceId(),
+                            new TimeSlotEvent(
+                                    booking.getTimeSlot().start(),
+                                    booking.getTimeSlot().end()
+                            ),
+                            booking.getCreatedAt()
+                    )
+            );
+        }
 
         return booking.getId();
     }
